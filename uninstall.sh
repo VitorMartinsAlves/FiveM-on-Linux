@@ -32,9 +32,7 @@ remove_cfx_association() {
     [[ -n "$previous" ]] || previous="__NONE__"
   fi
 
-  # Query BEFORE editing mimeapps.list; otherwise removing our own desktop file
-  # can change the reported default and make it impossible to distinguish a
-  # post-install user choice from the handler we registered.
+  # Query the active handler BEFORE editing MIME associations.
   if command -v xdg-mime >/dev/null 2>&1; then
     current_handler="$(xdg-mime query default "x-scheme-handler/cfx" 2>/dev/null || true)"
   fi
@@ -52,7 +50,7 @@ files = [
     home / ".local/share/applications/mimeapps.list",
     home / ".local/share/applications/kde-mimeapps.list",
 ]
-key_re = re.compile(r"^(\\s*x-scheme-handler/cfx\\s*=\\s*)(.*)$")
+key_re = re.compile(r"^(\s*x-scheme-handler/cfx\s*=\s*)(.*)$")
 for path in files:
     if not path.is_file():
         continue
@@ -76,16 +74,16 @@ for path in files:
             continue
         changed = changed or len(items) != len(old_items)
     if changed:
-        path.write_text("\\n".join(output).rstrip() + ("\\n" if output else ""), encoding="utf-8")
+        path.write_text("\n".join(output).rstrip() + ("\n" if output else ""), encoding="utf-8")
 PY
 
   if [[ "$current_handler" == "fivem-enhanced-lutris-cfx.desktop" ]] &&
      [[ "$previous" != "__NONE__" && "$previous" != "fivem-enhanced-lutris-cfx.desktop" ]] &&
      command -v xdg-mime >/dev/null 2>&1; then
-    xdg-mime default "$previous" "x-scheme-handler/cfx" >/dev/null 2>&1 || \\
-      printf '[FiveM on Linux] AVISO: não foi possível restaurar o handler cfx:// anterior (%s).\\n' "$previous" >&2
+    xdg-mime default "$previous" "x-scheme-handler/cfx" >/dev/null 2>&1 || \
+      printf '[FiveM on Linux] AVISO: não foi possível restaurar o handler cfx:// anterior (%s).\n' "$previous" >&2
   elif [[ "$current_handler" != "fivem-enhanced-lutris-cfx.desktop" && -n "$current_handler" ]]; then
-    printf '[FiveM on Linux] O handler cfx:// foi alterado depois da instalação; mantive a escolha atual (%s).\\n' "$current_handler"
+    printf '[FiveM on Linux] O handler cfx:// foi alterado depois da instalação; mantive a escolha atual (%s).\n' "$current_handler"
   fi
 }
 
