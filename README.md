@@ -31,9 +31,9 @@ A interface tenta detectar configurações do Lutris automaticamente, mas permit
 
 ## O que é alterado
 
-- O prefixo Wine selecionado: registro WebView2, registro de instalação do FiveM, configuração de plataforma e arquivos do cliente FiveM.
+- O prefixo Wine selecionado: registro WebView2, registro de instalação do FiveM e arquivos do cliente FiveM. A configuração `config.toml` recebe `[gta5enhanced] gamepath = "R:/"`, preservando as demais opções e criando backup do arquivo anterior.
 - Um link de drive `R:` dentro do prefixo apontando para a pasta real do GTA.
-- Alguns DLLs DirectX no prefixo, se forem encontrados no runner selecionado. Os arquivos originais existentes são copiados para o backup de preparação.
+- DLLs DirectX no prefixo, se estiverem disponíveis no runner selecionado. Os arquivos originais são copiados para o backup e as substituições Wine só são ativadas para os DLLs que realmente foram instalados.
 - O cache e os backups ficam em `~/.local/share/fivem-linux/runtime`.
 - Um atalho local em `~/.local/share/applications/fivem-enhanced-lutris.desktop`.
 
@@ -45,7 +45,7 @@ Não execute a preparação enquanto GTA, Rockstar Launcher ou outro programa es
 - **Não detecta o prefixo:** selecione a pasta raiz do prefixo Lutris; não selecione `drive_c`.
 - **Janela preta:** o runner pode não expor os DLLs DXVK que o script procura. Ative DXVK na configuração do runner Lutris e confira a área Atividade.
 - **Launcher abre, mas não conecta:** é uma limitação conhecida do FiveM Enhanced no Wine/Linux e pode não ser corrigível por caminhos ou configurações locais. O projeto não tenta ignorar o anti-cheat.
-- **Problemas com login/licença:** não mude o valor de plataforma para Steam; o app configura `gamePlatform = "rockstar"` para o launcher da Rockstar.
+- **Runner Wine:** selecione o executável `bin/wine` e o `wineserver` correspondente do mesmo runner. O aplicativo não mistura um wineserver do sistema com um runner Lutris.
 
 ## Créditos
 
