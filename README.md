@@ -52,3 +52,22 @@ Não execute a preparação enquanto GTA, Rockstar Launcher ou outro programa es
 A pasta `third_party/akacross` contém scripts adaptados do projeto [akacross/fivem-enhanced-linux](https://github.com/akacross/fivem-enhanced-linux), sob licença MIT, preservada junto aos arquivos. O runtime WebView2 é obtido da Microsoft e os componentes FiveM são baixados dos manifests públicos da Cfx.re na hora da preparação. Este repositório não redistribui esses binários.
 
 O projeto não é afiliado à Cfx.re, Rockstar Games, Valve ou Lutris.
+
+## Desinstalar ou desfazer a preparação
+
+O instalador também instala `fivem-linux-uninstall` e adiciona **Desinstalar FiveM on Linux** ao menu de aplicativos.
+
+No terminal:
+
+```bash
+fivem-linux-uninstall
+```
+
+O desinstalador oferece duas opções:
+
+- **Remover apenas o aplicativo:** remove a interface e os atalhos, sem tocar no prefixo Wine.
+- **Rollback completo:** encerra o Wine do prefixo selecionado e restaura registros, DLLs, configuração, mapeamento `R:`, launcher e arquivos de produto que foram substituídos ou criados. O backup fica preservado em `~/.local/share/fivem-linux/runtime/backups`.
+
+Também é possível executar diretamente `uninstall.sh --app-only` ou `uninstall.sh --rollback`. O rollback automático só está disponível para backups criados por versões que gravam metadados de prefixo; backups antigos sem essa identificação não são aplicados automaticamente, para evitar restaurar o prefixo errado.
+
+O WebView2 é mantido no prefixo porque o Rockstar Games Launcher pode compartilhar esse runtime. O jogo e o Rockstar Games Launcher não são removidos.
