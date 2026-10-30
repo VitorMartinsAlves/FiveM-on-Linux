@@ -36,7 +36,7 @@ if ! find "$WINEPREFIX/drive_c/Program Files (x86)/Microsoft/EdgeWebView/Applica
         -name msedgewebview2.exe -print -quit 2>/dev/null | grep -q .; then
   if [ ! -s "$WV2_EXE" ] || [ "$(od -An -N2 -tx1 "$WV2_EXE" | tr -d ' \n')" != "4d5a" ]; then
     wv2_tmp="$(mktemp "$FIVEM_ROOT/dl/.webview2-installer.XXXXXX")"
-    if ! curl -sfL --retry 2 --max-time 900 -A "Mozilla/5.0" -o "$wv2_tmp" \
+    if ! curl --proto '=https' --proto-redir '=https' -sfL --retry 2 --max-time 900 -A "Mozilla/5.0" -o "$wv2_tmp" \
         "https://go.microsoft.com/fwlink/p/?LinkId=2124701"; then
       rm -f "$wv2_tmp"
       fail "Could not download the Microsoft WebView2 offline installer."
