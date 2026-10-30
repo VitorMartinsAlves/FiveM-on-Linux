@@ -153,6 +153,9 @@ def detect_defaults() -> tuple[Path | None, Path | None, Path | None]:
 
 def profile_for_prefix(prefix: Path) -> str:
     users = prefix / "drive_c" / "users"
+    explicit = os.environ.get("FIVEM_WINE_USER") or os.environ.get("WINE_USER")
+    if explicit and (users / explicit / "AppData").is_dir():
+        return explicit
     if users.is_dir():
         candidates = []
         try:
@@ -182,11 +185,11 @@ def runner_root(wine: Path) -> Path:
 
 
 def wineserver_for(wine: Path) -> Path | None:
-    adjacent = wine.parent / "wineserver"
+    # A wineserver from another Wine build can corrupt or terminate the selected prefix.
+    adjacent = wine.resolve().parent / "wineserver"
     if adjacent.is_file() and os.access(adjacent, os.X_OK):
         return adjacent.resolve()
-    found = shutil.which("wineserver")
-    return Path(found).resolve() if found else None
+    return None
 
 
 class FiveMLutrisApp:
@@ -357,7 +360,9 @@ class FiveMLutrisApp:
     def load_settings_and_detect(self):
         saved = {}
         try:
-            saved = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+            loaded = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                saved = loaded
         except (OSError, json.JSONDecodeError):
             pass
         detected_prefix, detected_game, detected_wine = detect_defaults()
@@ -424,6 +429,10 @@ class FiveMLutrisApp:
             errors.append("Prefixo: selecione a pasta correta do Lutris (contém drive_c e system.reg).")
         if not has_game(game):
             errors.append("Jogo: selecione a pasta que contém GTA5_Enhanced.exe.")
+        elif not os.access(game / GAME_EXE, os.R_OK):
+            errors.append("Jogo: o executável GTA5_Enhanced.exe não pode ser lido por este usuário.")
+        if is_prefix(prefix) and not os.access(prefix, os.W_OK):
+            errors.append("Prefixo: sem permissão de escrita. Verifique as permissões da pasta do Lutris.")
         if not wine.is_file() or not os.access(wine, os.X_OK):
             errors.append("Wine: selecione o executável Wine do runner configurado no Lutris.")
         if errors:
@@ -450,20 +459,33 @@ class FiveMLutrisApp:
         })
         return env
 
+    def atomic_write(self, path: Path, content: str, mode: int = 0o600):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+        try:
+            temporary.write_text(content, encoding="utf-8")
+            temporary.chmod(mode)
+            os.replace(temporary, path)
+        finally:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
+
     def save_settings(self, paths):
         prefix, game, wine, server = paths
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        SETTINGS_FILE.write_text(json.dumps({
+        self.atomic_write(SETTINGS_FILE, json.dumps({
             "prefix": str(prefix), "game": str(game), "wine": str(wine)
-        }, indent=2), encoding="utf-8")
+        }, indent=2) + "\n")
         env = self.env_for(paths)
         exports = [
             "WINEPREFIX", "GTA_ENHANCED_DIR", "WINE", "WINESERVER",
             "LUTRIS_RUNNER_DIR", "WINE_USER", "FIVEM_ROOT",
             "FIVEM_GAME_PLATFORM", "WINEDEBUG"
         ]
-        ENV_FILE.write_text("".join(f"export {key}={shlex.quote(env[key])}\n" for key in exports), encoding="utf-8")
-        ENV_FILE.chmod(0o600)
+        env_content = "".join(f"export {key}={shlex.quote(env[key])}\n" for key in exports)
+        self.atomic_write(ENV_FILE, env_content)
         self.create_launchers()
 
     def create_launchers(self):
@@ -471,7 +493,6 @@ class FiveMLutrisApp:
         cfx_script = HOME / ".local/share/fivem-linux/launch-cfx-url.sh"
         launch_script.parent.mkdir(parents=True, exist_ok=True)
         envfile = str(ENV_FILE)
-        vend_bin = str(VENDOR_BIN)
         launch_script.write_text(
             "#!/usr/bin/env bash\nset -Eeuo pipefail\nset -a\nsource " + shlex.quote(envfile) +
             "\nset +a\nexec bash " + shlex.quote(str(VENDOR_BIN / "launch.sh")) + ' "$@"\n',
