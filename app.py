@@ -207,6 +207,7 @@ class FiveMLutrisApp:
         self.build_ui()
         self.load_settings_and_detect()
         self.refresh_status()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.root.after(120, self.poll_events)
 
     def init_style(self):
@@ -331,6 +332,16 @@ class FiveMLutrisApp:
 
     def log(self, message: str):
         self.events.put(("log", f"[{time.strftime('%H:%M:%S')}] {message.rstrip()}"))
+
+    def on_close(self):
+        if self.busy:
+            messagebox.showwarning(
+                "Preparação em andamento",
+                "A preparação está modificando o prefixo do Lutris. Aguarde a conclusão antes de fechar o aplicativo.",
+                parent=self.root,
+            )
+            return
+        self.root.destroy()
 
     def poll_events(self):
         try:
