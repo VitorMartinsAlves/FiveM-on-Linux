@@ -124,4 +124,23 @@ grep -q "org.kde.dolphin.desktop" "$HOME/.config/mimeapps.list"
 grep -q -- "-k" "$TMP/wineserver.log"
 grep -q -- "-w" "$TMP/wineserver.log"
 
-printf 'uninstall rollback test passed\n'
+# Separate app-only scenario: if FiveM is still the current default, restore
+# the handler that was active before setup.
+HOME2="$TMP/home-restore-handler"
+CONFIG2="$HOME2/.config/fivem-linux"
+mkdir -p "$HOME2/.local/share/applications" "$HOME2/.local/bin" "$HOME2/.local/share/fivem-linux" "$CONFIG2" "$TMP/bin-restore"
+printf 'org.example.previous.desktop\\n' > "$CONFIG2/cfx-handler.previous"
+touch "$HOME2/.local/share/applications/fivem-enhanced-lutris-cfx.desktop"
+cat > "$TMP/bin-restore/xdg-mime" <<'SH'
+#!/usr/bin/env bash
+if [[ "$1" == "query" ]]; then
+  echo "fivem-enhanced-lutris-cfx.desktop"
+elif [[ "$1" == "default" ]]; then
+  printf '%s\\n' "$2" >> "$HOME/xdg-mime-restore.log"
+fi
+SH
+chmod +x "$TMP/bin-restore/xdg-mime"
+HOME="$HOME2" PATH="$TMP/bin-restore:$PATH" bash "$ROOT/uninstall.sh" --app-only >/dev/null
+grep -q "org.example.previous.desktop" "$HOME2/xdg-mime-restore.log"
+
+printf 'uninstall rollback and handler tests passed\\n'
