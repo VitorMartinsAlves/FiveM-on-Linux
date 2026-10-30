@@ -367,7 +367,7 @@ class FiveMLinuxApp:
         tk.Label(loc, text="LOCALIZAÇÃO DO GTA V ENHANCED", bg=PANEL, fg=MUTED, font=("Inter", 8, "bold")).pack(anchor="w")
         pathrow = tk.Frame(loc, bg=PANEL)
         pathrow.pack(fill="x", pady=(8, 0))
-        self.path_entry = ttk.Entry(pathrow, textvariable=self.path_var)
+        self.path_entry = ttk.Entry(pathrow, textvariable=self.path_var, state="readonly")
         self.path_entry.pack(side="left", fill="x", expand=True, ipady=5)
         self.browse_btn = self.button(pathrow, "ESCOLHER PASTA", self.browse_game)
         self.browse_btn.pack(side="left", padx=(8, 0))
@@ -461,7 +461,7 @@ class FiveMLinuxApp:
                 elif kind == "done":
                     self.busy = False
                     self.progress.stop()
-                    self.path_entry.configure(state="normal")
+                    self.path_entry.configure(state="readonly")
                     self.browse_btn.configure(state="normal")
                     self.detect_btn.configure(state="normal")
                     self.prepare_btn.configure(state="normal")
