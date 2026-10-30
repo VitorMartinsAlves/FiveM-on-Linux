@@ -135,13 +135,22 @@ def runner_from_version(version: str) -> Path | None:
 def detect_defaults() -> tuple[Path | None, Path | None, Path | None]:
     records = config_records()
     prefixes = [r for r in records if r["prefix"]]
-    preferred = [r for r in prefixes if any(word in r["name"] + " " + r["text"] for word in ("rockstar", "grand theft auto", "gta v", "gtav"))]
+    preferred = [
+        r for r in prefixes
+        if any(word in r["name"] + " " + r["text"] for word in ("rockstar", "grand theft auto", "gta v", "gtav"))
+    ]
     chosen = preferred[0] if preferred else (prefixes[0] if prefixes else None)
     prefix = chosen["prefix"] if chosen else None
-    wine = runner_from_version(chosen["version"]) if chosen else None
-    if wine is None:
+
+    # Never pair a known prefix with an arbitrary Wine build. Lutris stores the
+    # selected runner version in its game YAML; if it cannot be resolved, require
+    # the user to choose the matching executable instead of guessing.
+    wine = runner_from_version(chosen["version"]) if chosen and chosen["version"] else None
+    if not chosen:
         candidates = wine_candidates()
-        wine = candidates[0] if candidates else None
+        if len(candidates) == 1:
+            wine = candidates[0]
+
     game_dir = None
     for record in records:
         exe = record["exe"]
@@ -190,6 +199,16 @@ def wineserver_for(wine: Path) -> Path | None:
     if adjacent.is_file() and os.access(adjacent, os.X_OK):
         return adjacent.resolve()
     return None
+
+
+def is_proton_runner(wine: Path) -> bool:
+    """Return True for Proton/GE-Proton executables that must be launched via UMU."""
+    parts = [part.lower() for part in wine.parts]
+    return (
+        "compatibilitytools.d" in parts
+        or any("proton" in part for part in parts)
+        or (len(parts) >= 3 and parts[-3:] == ["files", "bin", "wine"])
+    )
 
 
 class FiveMLutrisApp:
@@ -431,6 +450,15 @@ class FiveMLutrisApp:
         if not path.is_file() or not os.access(path, os.X_OK):
             messagebox.showerror("Wine inválido", "Selecione um executável Wine que exista e seja executável.", parent=self.root)
             return
+        if is_proton_runner(path):
+            messagebox.showerror(
+                "Proton não suportado diretamente",
+                "Este aplicativo chama wine/wineserver diretamente e não inicia o runtime UMU. "
+                "Não selecione files/bin/wine do Proton ou GE-Proton: fora da Steam, esses runners "
+                "devem ser executados pelo UMU. Use um runner Wine do Lutris nesta versão do aplicativo.",
+                parent=self.root,
+            )
+            return
         self.wine_var.set(str(path))
         self.log(f"Runner Wine selecionado: {path}")
         self.refresh_status()
@@ -450,6 +478,11 @@ class FiveMLutrisApp:
             errors.append("Prefixo: sem permissão de escrita. Verifique as permissões da pasta do Lutris.")
         if not wine.is_file() or not os.access(wine, os.X_OK):
             errors.append("Wine: selecione o executável Wine do runner configurado no Lutris.")
+        elif is_proton_runner(wine):
+            errors.append(
+                "Proton/GE-Proton não pode ser executado diretamente por este instalador. "
+                "Ele exige o runtime UMU, que esta versão ainda não integra. Selecione um runner Wine do Lutris."
+            )
         if errors:
             raise ValueError("\n".join(errors))
         server = wineserver_for(wine)
@@ -673,9 +706,14 @@ class FiveMLutrisApp:
             self.status_cards["Prefixo Lutris"].configure(text=str(prefix), fg=GREEN)
         else:
             self.status_cards["Prefixo Lutris"].configure(text="Selecione o prefixo com system.reg", fg=ACCENT)
-        wine_ok = bool(wine and wine.is_file() and os.access(wine, os.X_OK) and wineserver_for(wine))
+        wine_ok = bool(
+            wine and wine.is_file() and os.access(wine, os.X_OK)
+            and not is_proton_runner(wine) and wineserver_for(wine)
+        )
         if wine_ok:
-            self.status_cards["Runner Wine"].configure(text="Wine + wineserver encontrados", fg=GREEN)
+            self.status_cards["Runner Wine"].configure(text="Wine + wineserver correspondentes", fg=GREEN)
+        elif wine and is_proton_runner(wine):
+            self.status_cards["Runner Wine"].configure(text="Proton selecionado sem integração UMU", fg=ACCENT)
         else:
             self.status_cards["Runner Wine"].configure(text="Wine ou wineserver correspondente ausente", fg=ACCENT)
         if prefix and is_prefix(prefix) and (prefix / FIVEM_EXE_REL).is_file():
