@@ -159,6 +159,7 @@ restore_prefix() {
   local name
   for name in system.reg user.reg userdef.reg; do
     if [[ -f "$backup/$name" ]]; then
+      rm -f -- "$prefix/$name"
       cp -a "$backup/$name" "$prefix/$name"
     elif [[ -f "$backup/$name.absent" ]]; then
       rm -f "$prefix/$name"
@@ -216,6 +217,7 @@ restore_prefix() {
   local config_file="$prefix/drive_c/users/$wine_user/AppData/Roaming/FiveM for GTAV Enhanced/config.toml"
   if [[ -f "$backup/config.toml" ]]; then
     mkdir -p "$(dirname "$config_file")"
+    rm -f -- "$config_file"
     cp -a "$backup/config.toml" "$config_file"
   elif [[ -f "$backup/config-was-absent" ]]; then
     rm -f "$config_file"
