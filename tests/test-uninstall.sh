@@ -86,7 +86,7 @@ with open(sys.argv[1], "w", encoding="utf-8") as f:
     json.dump({"prefix": sys.argv[2]}, f)
 PY
 
-printf '\ny\n' | HOME="$HOME" bash "$ROOT/uninstall.sh" --rollback > "$TMP/uninstall.log" 2>&1 || {
+printf '\ns\n' | HOME="$HOME" bash "$ROOT/uninstall.sh" --rollback > "$TMP/uninstall.log" 2>&1 || {
   cat "$TMP/uninstall.log" >&2
   exit 1
 }
