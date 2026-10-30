@@ -525,10 +525,23 @@ class FiveMLutrisApp:
             encoding="utf-8"
         )
         try:
+            previous_handler = CONFIG_DIR / "cfx-handler.previous"
+            if not previous_handler.exists():
+                previous = subprocess.run(
+                    ["xdg-mime", "query", "default", "x-scheme-handler/cfx"],
+                    stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                    text=True, check=False
+                )
+                previous_name = previous.stdout.strip() if previous.returncode == 0 else ""
+                # A handler left by an older install of this project is not a
+                # pre-existing application; do not restore a desktop file we remove.
+                if previous_name == cfx_desktop.name:
+                    previous_name = ""
+                self.atomic_write(previous_handler, (previous_name or "__NONE__") + "\n")
             subprocess.run(["xdg-mime", "default", cfx_desktop.name, "x-scheme-handler/cfx"],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
         except OSError:
-            pass
+            self.log("Não foi possível registrar o handler cfx:// no desktop.")
         self.log(f"Atalho de desktop criado: {desktop}")
 
     def run_background(self, title, action):
