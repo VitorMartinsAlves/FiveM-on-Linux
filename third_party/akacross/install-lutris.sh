@@ -15,10 +15,20 @@ fail() { echo "ERROR: $*" >&2; exit 1; }
 [ -x "$WINESERVER" ] || fail "Matching wineserver is missing: $WINESERVER"
 
 mkdir -p "$FIVEM_ROOT/backups" "$FIVEM_ROOT/dl" "$FIVEM_ROOT/bin"
-BACKUP="$FIVEM_ROOT/backups/lutris-prefix-$(date +%Y%m%d-%H%M%S)-$$"
+BACKUP="$FIVEM_ROOT/backups/lutris-prefix-$(date +%Y%m%d-%H%M%S)-$"
 mkdir -p "$BACKUP"
+export FIVEM_BACKUP="$BACKUP"
+printf '%s\n' "$WINEPREFIX" > "$BACKUP/prefix.path"
+printf '%s\n' "$WINE" > "$BACKUP/wine.path"
+printf '%s\n' "$WINESERVER" > "$BACKUP/wineserver.path"
+printf '%s\n' "$GTA_ENHANCED_DIR" > "$BACKUP/game.path"
+printf '%s\n' "$WINE_USER" > "$BACKUP/wine-user"
 for f in system.reg user.reg userdef.reg; do
-  [ ! -f "$WINEPREFIX/$f" ] || cp -a "$WINEPREFIX/$f" "$BACKUP/$f"
+  if [ -f "$WINEPREFIX/$f" ]; then
+    cp -a "$WINEPREFIX/$f" "$BACKUP/$f"
+  else
+    : > "$BACKUP/$f.absent"
+  fi
 done
 echo "Prefix registry backup: $BACKUP"
 
@@ -93,9 +103,12 @@ done
 
 if [ -n "$DXVK_DIR" ]; then
   mkdir -p "$BACKUP/system32"
+  : > "$BACKUP/system32-created.txt"
   for name in d3d11.dll d3d10core.dll dxgi.dll d3d9.dll d3d12.dll d3d12core.dll; do
     if [ -e "$SYS/$name" ] || [ -L "$SYS/$name" ]; then
       cp -a "$SYS/$name" "$BACKUP/system32/$name"
+    else
+      printf '%s\n' "$name" >> "$BACKUP/system32-created.txt"
     fi
   done
 
@@ -132,11 +145,19 @@ if [ -e "$R_DRIVE" ] || [ -L "$R_DRIVE" ]; then
   mkdir -p "$BACKUP/dosdevices"
   cp -a "$R_DRIVE" "$BACKUP/dosdevices/r:"
   echo "   previous R: symlink backed up: $(readlink "$R_DRIVE")"
+else
+  : > "$BACKUP/r-drive-was-absent"
 fi
 ln -sfnT "$GTA_ENHANCED_DIR" "$R_DRIVE"
 echo "   R:\\ -> $GTA_ENHANCED_DIR"
 
 step "6/7  FiveM launcher and product files (SHA256 verified)"
+LAUNCHER_DIR="$WINEPREFIX/drive_c/FiveM Enhanced"
+if [ -e "$LAUNCHER_DIR" ] || [ -L "$LAUNCHER_DIR" ]; then
+  cp -a "$LAUNCHER_DIR" "$BACKUP/FiveM Enhanced"
+else
+  : > "$BACKUP/fivem-launcher-was-absent"
+fi
 bash "$HERE/bin/fetch-launcher.sh"
 bash "$HERE/bin/fetch-product.sh" cfxui_gen9
 bash "$HERE/bin/fetch-product.sh" fivem_gen9
@@ -148,7 +169,9 @@ bash "$HERE/bin/enable-devtools.sh" 1
 CFG="$WINEPREFIX/drive_c/users/$WINE_USER/AppData/Roaming/FiveM for GTAV Enhanced/config.toml"
 mkdir -p "$(dirname "$CFG")"
 if [ -f "$CFG" ]; then
-  cp -a "$CFG" "$CFG.backup-$(date +%Y%m%d-%H%M%S)-$$"
+  cp -a "$CFG" "$BACKUP/config.toml"
+else
+  : > "$BACKUP/config-was-absent"
 fi
 python3 - "$CFG" <<'PY'
 from pathlib import Path
