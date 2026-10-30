@@ -206,7 +206,9 @@ def is_proton_runner(wine: Path) -> bool:
     parts = [part.lower() for part in wine.parts]
     proton_dirs = (
         part == "proton"
-        or part.startswith(("proton-", "proton_", "ge-proton", "proton experimental"))
+        or part.startswith((
+            "proton-", "proton_", "proton -", "ge-proton", "umu-proton"
+        ))
         for part in parts
     )
     return "compatibilitytools.d" in parts or any(proton_dirs)
