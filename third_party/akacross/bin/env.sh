@@ -19,4 +19,10 @@ export GTA_DRIVE='R:\'
 export WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS="--disable-gpu --no-sandbox --disable-gpu-compositing"
 export XCURSOR_THEME="${XCURSOR_THEME:-breeze_cursors}"
 export XCURSOR_SIZE="${XCURSOR_SIZE:-24}"
-export WEBVIEW2_VERSION="${WEBVIEW2_VERSION:-}"
+export WEBVIEW2_VERSION="${WEBVIEW2_VERSION:-$(find "$WINEPREFIX/drive_c/Program Files (x86)/Microsoft/EdgeWebView/Application" -mindepth 1 -maxdepth 1 -type d -printf '%f\\n' 2>/dev/null | grep -E '^[0-9]+(\\.[0-9]+)+
+ | sort -V | tail -1)}"
+if [ -s "$FIVEM_ROOT/bin/webview2.selected" ]; then
+  export WEBVIEW2_BROWSER_EXECUTABLE_FOLDER="$(cat "$FIVEM_ROOT/bin/webview2.selected")"
+elif [ -n "$WEBVIEW2_VERSION" ]; then
+  export WEBVIEW2_BROWSER_EXECUTABLE_FOLDER="C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\$WEBVIEW2_VERSION"
+fi
