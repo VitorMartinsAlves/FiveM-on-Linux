@@ -25,6 +25,7 @@ jobs:
       - name: Validate all shell scripts
         run: |
           bash -n install.sh
+          bash -n uninstall.sh
           find third_party/akacross -type f -name '*.sh' -print0 | while IFS= read -r -d '' script; do
             bash -n "$script"
           done
@@ -33,7 +34,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          files = [Path("install.sh"), *Path("third_party/akacross").rglob("*.sh")]
+          files = [Path("install.sh"), Path("uninstall.sh"), *Path("third_party/akacross").rglob("*.sh")]
           for path in files:
               lines = path.read_text(encoding="utf-8").splitlines()
               i = 0
@@ -56,6 +57,7 @@ jobs:
         run: |
           test -x /usr/bin/bash
           test -f app.py
+          test -f uninstall.sh
           test -f third_party/akacross/install-lutris.sh
           test -f third_party/akacross/bin/fetch-launcher.sh
           test -f third_party/akacross/bin/fetch-product.sh
