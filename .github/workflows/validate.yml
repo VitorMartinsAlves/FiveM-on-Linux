@@ -53,6 +53,9 @@ jobs:
                   i += 1
               print(f"validated embedded Python: {path}")
           PY
+      - name: Smoke test: show uninstaller usage
+        run: |
+          bash uninstall.sh --help
       - name: Validate required Lutris integration files
         run: |
           test -x /usr/bin/bash
