@@ -71,8 +71,14 @@ for path in files:
 PY
 
   if [[ "$previous" != "__NONE__" && "$previous" != "fivem-enhanced-lutris-cfx.desktop" ]] && command -v xdg-mime >/dev/null 2>&1; then
-    xdg-mime default "$previous" "x-scheme-handler/cfx" >/dev/null 2>&1 || \
-      printf '[FiveM on Linux] AVISO: não foi possível restaurar o handler cfx:// anterior (%s).\n' "$previous" >&2
+    local current_handler=""
+    current_handler="$(xdg-mime query default "x-scheme-handler/cfx" 2>/dev/null || true)"
+    if [[ "$current_handler" == "fivem-enhanced-lutris-cfx.desktop" ]]; then
+      xdg-mime default "$previous" "x-scheme-handler/cfx" >/dev/null 2>&1 || \
+        printf '[FiveM on Linux] AVISO: não foi possível restaurar o handler cfx:// anterior (%s).\n' "$previous" >&2
+    else
+      printf '[FiveM on Linux] O handler cfx:// foi alterado depois da instalação; mantive a escolha atual (%s).\n' "${current_handler:-nenhum}"
+    fi
   fi
 }
 
