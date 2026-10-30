@@ -32,7 +32,7 @@ SOURCE_DIR="$TMP_DIR/source"
 mkdir -p "$SOURCE_DIR"
 
 printf '\n[FiveM on Linux] Baixando o projeto de GitHub...\n'
-curl -fL --retry 2 --connect-timeout 15 \
+curl --proto '=https' --proto-redir '=https' -fL --retry 2 --connect-timeout 15 \
   "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" \
   -o "$ARCHIVE" || fail "Não foi possível baixar o projeto do GitHub."
 tar -xzf "$ARCHIVE" --strip-components=1 -C "$SOURCE_DIR"
