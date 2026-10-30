@@ -31,10 +31,14 @@ for HIVE in HKCU HKLM; do
   r "$U" UninstallString "\"$WIN_DEST\\modify.exe\" --uninstall"
 done
 # Where GTA V Enhanced lives, so the launcher does not have to hunt for it.
-r "HKLM\\SOFTWARE\\WOW6432Node\\Rockstar Games\\GTAV Enhanced" InstallFolder      "$GTA_DRIVE"
-r "HKLM\\SOFTWARE\\WOW6432Node\\Rockstar Games\\GTAV Enhanced" InstallFolderSteam "$GTA_DRIVE"
-r "HKLM\\SOFTWARE\\WOW6432Node\\Rockstar Games\\GTA V Enhanced" InstallFolder     "$GTA_DRIVE"
-r "HKLM\\SOFTWARE\\WOW6432Node\\Rockstar Games\\GTA V Enhanced" InstallFolderSteam "$GTA_DRIVE"
+for KEY in "HKLM\\SOFTWARE\\WOW6432Node\\Rockstar Games\\GTAV Enhanced" "HKLM\\SOFTWARE\\WOW6432Node\\Rockstar Games\\GTA V Enhanced"; do
+  r "$KEY" InstallFolder "$GTA_DRIVE"
+  if [ "$FIVEM_GAME_PLATFORM" = "steam" ]; then
+    r "$KEY" InstallFolderSteam "$GTA_DRIVE"
+  else
+    "$WINE" reg delete "$KEY" /v InstallFolderSteam /f >/dev/null 2>&1 || true
+  fi
+done
 mkdir -p "$WINEPREFIX/drive_c/users/$WINE_USER/AppData/Local/FiveM for GTAV Enhanced/"{gamecache,servercache}
 "$WINESERVER" -w
 echo "registry written."
