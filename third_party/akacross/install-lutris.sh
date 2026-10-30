@@ -93,6 +93,7 @@ bash "$HERE/bin/fetch-product.sh" fivem_gen9
 
 step "7/7  Registry and configuration for Rockstar Games Launcher"
 bash "$HERE/bin/register.sh"
+bash "$HERE/bin/enable-devtools.sh" 1
 CFG="$WINEPREFIX/drive_c/users/$WINE_USER/AppData/Roaming/FiveM for GTAV Enhanced/config.toml"
 mkdir -p "$(dirname "$CFG")"
 cat > "$CFG" <<EOF
