@@ -71,4 +71,6 @@ printf '\n[FiveM on Linux] Instalação concluída.\n'
 printf 'Comando para abrir depois: %s/fivem-linux\n' "$BIN_DIR"
 printf 'Também foi criado um atalho no menu de aplicativos.\n\n'
 
+rm -rf "$TMP_DIR"
+trap - EXIT
 exec python3 "$INSTALL_DIR/app.py"
