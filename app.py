@@ -200,6 +200,7 @@ class FiveMLutrisApp:
         self.prefix_var = tk.StringVar()
         self.game_var = tk.StringVar()
         self.wine_var = tk.StringVar()
+        self.path_buttons = []
         self.status_var = tk.StringVar(value="Detectando instalações do Lutris...")
         self.detail_var = tk.StringVar(value="GTA V Enhanced • Rockstar Games Launcher • Lutris/Wine")
         self.init_style()
@@ -325,6 +326,7 @@ class FiveMLutrisApp:
         entry.pack(side="left", fill="x", expand=True, ipady=5)
         btn = self.button(row, "ESCOLHER", command)
         btn.pack(side="left", padx=(8, 0))
+        self.path_buttons.append(btn)
         return entry
 
     def log(self, message: str):
@@ -350,7 +352,7 @@ class FiveMLutrisApp:
                 elif kind == "done":
                     self.busy = False
                     self.progress.stop()
-                    for btn in (self.prepare_btn, self.launch_btn, self.open_prefix_btn, self.refresh_btn):
+                    for btn in (self.prepare_btn, self.launch_btn, self.open_prefix_btn, self.refresh_btn, *self.path_buttons):
                         btn.configure(state="normal")
                     self.refresh_status()
         except queue.Empty:
@@ -533,7 +535,7 @@ class FiveMLutrisApp:
         if self.busy:
             return
         self.busy = True
-        for btn in (self.prepare_btn, self.launch_btn, self.open_prefix_btn, self.refresh_btn):
+        for btn in (self.prepare_btn, self.launch_btn, self.open_prefix_btn, self.refresh_btn, *self.path_buttons):
             btn.configure(state="disabled")
         self.progress.start(10)
         self.status_var.set(title)
