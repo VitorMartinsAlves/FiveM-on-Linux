@@ -204,11 +204,12 @@ def wineserver_for(wine: Path) -> Path | None:
 def is_proton_runner(wine: Path) -> bool:
     """Return True for Proton/GE-Proton executables that must be launched via UMU."""
     parts = [part.lower() for part in wine.parts]
-    return (
-        "compatibilitytools.d" in parts
-        or any("proton" in part for part in parts)
-        or (len(parts) >= 3 and parts[-3:] == ["files", "bin", "wine"])
+    proton_dirs = (
+        part == "proton"
+        or part.startswith(("proton-", "proton_", "ge-proton", "proton experimental"))
+        for part in parts
     )
+    return "compatibilitytools.d" in parts or any(proton_dirs)
 
 
 class FiveMLutrisApp:
