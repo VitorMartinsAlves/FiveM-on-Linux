@@ -11,6 +11,8 @@ fail() { echo "ERROR: $*" >&2; exit 1; }
 [ -d "$WINEPREFIX/drive_c" ] || fail "Selected path is not an existing Wine/Lutris prefix: $WINEPREFIX"
 [ -f "$WINEPREFIX/system.reg" ] || fail "system.reg is missing. Select the Lutris prefix root."
 [ -f "$GTA_ENHANCED_DIR/GTA5_Enhanced.exe" ] || fail "GTA5_Enhanced.exe was not found under: $GTA_ENHANCED_DIR"
+LAUNCHER_DIR="$WINEPREFIX/drive_c/FiveM Enhanced"
+[ ! -L "$LAUNCHER_DIR" ] || fail "The FiveM launcher destination is a symbolic link. Move it aside before continuing."
 [ -x "$WINE" ] || fail "Selected Wine executable is not executable: $WINE"
 [ -x "$WINESERVER" ] || fail "Matching wineserver is missing: $WINESERVER"
 
@@ -152,8 +154,7 @@ ln -sfnT "$GTA_ENHANCED_DIR" "$R_DRIVE"
 echo "   R:\\ -> $GTA_ENHANCED_DIR"
 
 step "6/7  FiveM launcher and product files (SHA256 verified)"
-LAUNCHER_DIR="$WINEPREFIX/drive_c/FiveM Enhanced"
-if [ -e "$LAUNCHER_DIR" ] || [ -L "$LAUNCHER_DIR" ]; then
+if [ -e "$LAUNCHER_DIR" ]; then
   cp -a "$LAUNCHER_DIR" "$BACKUP/FiveM Enhanced"
 else
   : > "$BACKUP/fivem-launcher-was-absent"
