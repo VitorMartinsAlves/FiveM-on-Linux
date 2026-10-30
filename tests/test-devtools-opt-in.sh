@@ -10,6 +10,7 @@ if grep -Fq 'bash "$HERE/bin/enable-devtools.sh" 1' "$INSTALLER"; then
   echo "Installer must not enable WebView2 DevTools by default." >&2
   exit 1
 fi
+grep -Fq 'bash "$HERE/bin/enable-devtools.sh" 0' "$INSTALLER"
 
 grep -Fq 'DevTools do WebView2 (somente diagnóstico)' "$README"
 grep -Fq 'enable-devtools.sh" 1' "$README"
