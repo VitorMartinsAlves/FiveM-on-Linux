@@ -203,6 +203,12 @@ def wineserver_for(wine: Path) -> Path | None:
 
 def is_proton_runner(wine: Path) -> bool:
     """Return True for Proton/GE-Proton executables that must be launched via UMU."""
+    # Resolve symlinks so a generic-looking Lutris runner alias cannot bypass
+    # the UMU requirement by pointing at a Proton executable.
+    try:
+        wine = wine.resolve()
+    except OSError:
+        pass
     parts = [part.lower() for part in wine.parts]
 
     def is_proton_dir(name: str) -> bool:
