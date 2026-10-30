@@ -49,6 +49,11 @@ class ProtonRunnerPolicyTests(unittest.TestCase):
     def test_home_directory_named_proton_is_not_a_false_positive(self):
         self.assertFalse(self.detect(Path("/home/proton/Games/wine/bin/wine")))
 
+    def test_home_directory_named_proton_with_normal_lutris_wine_is_allowed(self):
+        self.assertFalse(self.detect(Path(
+            "/home/proton/.local/share/lutris/runners/wine/lutris-GE-8-26-x86_64/bin/wine"
+        )))
+
 
 if __name__ == "__main__":
     unittest.main()
