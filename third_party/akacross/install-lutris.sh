@@ -175,42 +175,7 @@ elif [ -f "$CFG" ]; then
 else
   : > "$BACKUP/config-was-absent"
 fi
-python3 - "$CFG" <<'PY'
-from pathlib import Path
-import re
-import sys
-
-path = Path(sys.argv[1])
-text = path.read_text(encoding="utf-8", errors="replace") if path.exists() else ""
-lines = text.splitlines()
-section = re.compile(r"^\s*\[gta5enhanced\]\s*(?:#.*)?$")
-section_start = next((i for i, line in enumerate(lines) if section.match(line)), None)
-gamepath = 'gamepath = "R:/"'
-
-# Remove the old undocumented root-level platform flag; Rockstar detection is done
-# through the non-Steam registry value and the supported gta5enhanced.gamepath key.
-lines = [line for line in lines if not re.match(r"^\s*gamePlatform\s*=", line)]
-section_start = next((i for i, line in enumerate(lines) if section.match(line)), None)
-
-if section_start is None:
-    if lines and lines[-1].strip():
-        lines.append("")
-    lines.extend(["[gta5enhanced]", gamepath])
-else:
-    section_end = next(
-        (i for i in range(section_start + 1, len(lines)) if re.match(r"^\s*\[[^\]]+\]", lines[i])),
-        len(lines),
-    )
-    key_lines = [i for i in range(section_start + 1, section_end) if re.match(r"^\s*gamepath\s*=", lines[i])]
-    if key_lines:
-        lines[key_lines[0]] = gamepath
-        for i in reversed(key_lines[1:]):
-            del lines[i]
-    else:
-        lines.insert(section_start + 1, gamepath)
-
-path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-PY
-echo "   config: $CFG ([gta5enhanced].gamepath = R:/)"
+python3 "$HERE/bin/write-config.py" "$CFG"
+echo "   config: $CFG (gamepath, gamePlatform=rockstar, ui_updateChannel=production)"
 printf '\n\033[1mFiveM for GTA V Enhanced staged in the Lutris prefix.\033[0m\n'
 echo "Launch it from FiveM on Linux. Prefix backup: $BACKUP"
