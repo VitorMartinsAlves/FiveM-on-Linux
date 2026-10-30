@@ -24,8 +24,29 @@ PY
 mv -f "$manifest_tmp" "$MAN"
 BUILD="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["build"])' "$MAN")"
 DEST="$LOCAL/products/$PROD/$BUILD"
+if [ -n "${FIVEM_BACKUP:-}" ] && [ ! -e "$DEST" ]; then
+  mkdir -p "$FIVEM_BACKUP"
+  printf '%s\n' "$PROD/$BUILD" >> "$FIVEM_BACKUP/product-builds-created.txt"
+fi
 mkdir -p "$DEST"
 echo "== $PROD branch=$BRANCH build=$BUILD -> products/$PROD/$BUILD"
+
+track_product_file() {
+  local target="$1" key="$2" backup_target
+  [ -n "${FIVEM_BACKUP:-}" ] || return 0
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    backup_target="$FIVEM_BACKUP/products-overwritten/$key"
+    if [ ! -e "$backup_target" ] && [ ! -L "$backup_target" ]; then
+      mkdir -p "$(dirname "$backup_target")"
+      cp -a "$target" "$backup_target"
+      grep -Fqx -- "$key" "$FIVEM_BACKUP/product-files-overwritten.txt" 2>/dev/null || \
+        printf '%s\n' "$key" >> "$FIVEM_BACKUP/product-files-overwritten.txt"
+    fi
+  else
+    grep -Fqx -- "$key" "$FIVEM_BACKUP/product-files-created.txt" 2>/dev/null || \
+      printf '%s\n' "$key" >> "$FIVEM_BACKUP/product-files-created.txt"
+  fi
+}
 
 python3 - "$MAN" <<'PY' | while IFS=$'\t' read -r url rel want; do
 import json
@@ -60,6 +81,7 @@ PY
   if [ -f "$out" ] && [ "$(sha256sum "$out" | cut -d' ' -f1)" = "$want" ]; then
     continue
   fi
+  track_product_file "$out" "$PROD/$BUILD/$rel"
   tmpout="$(mktemp "$out_dir/.fivem-download.XXXXXX")"
   if ! curl --proto '=https' --proto-redir '=https' -sfL --retry 2 --max-time 1800 -A "$UA" -o "$tmpout" "$url"; then
     rm -f "$tmpout"
@@ -75,6 +97,7 @@ PY
   mv -f "$tmpout" "$out"
 done
 
+track_product_file "$DEST/../manifest-$BUILD.json" "$PROD/manifest-$BUILD.json"
 cp -f "$MAN" "$DEST/../manifest-$BUILD.json"
 n="$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["content_files"]))' "$MAN")"
 echo "   $n files verified into $DEST"
