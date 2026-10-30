@@ -47,7 +47,7 @@ echo "modified dxgi" > "$PREFIX/drive_c/windows/system32/dxgi.dll"
 echo "new d3d11" > "$PREFIX/drive_c/windows/system32/d3d11.dll"
 printf 'd3d11.dll\n' > "$BACKUP/system32-created.txt"
 
-mkdir -p "$TMP/old R drive" "$GAME"
+mkdir -p "$TMP/old R drive" "$GAME" "$BACKUP/dosdevices"
 ln -s "$TMP/old R drive" "$BACKUP/dosdevices/r:"
 ln -s "$GAME" "$PREFIX/dosdevices/r:"
 mkdir -p "$BACKUP/FiveM Enhanced"
