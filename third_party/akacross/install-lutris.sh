@@ -47,7 +47,7 @@ GUID='{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'
 sleep 1
 for VIEW in 64 32; do
   for HIVE in HKLM HKCU; do
-    "$WINE" reg add "$HIVE\\SOFTWARE\\Microsoft\\EdgeUpdate\\Clients\\$GUID" /v pv /t REG_SZ /d "$\{VER:-0.0.0.0}" /f /reg:$VIEW >/dev/null 2>&1 || true
+    "$WINE" reg add "$HIVE\\SOFTWARE\\Microsoft\\EdgeUpdate\\Clients\\$GUID" /v pv /t REG_SZ /d "${VER:-0.0.0.0}" /f /reg:$VIEW >/dev/null 2>&1 || true
     "$WINE" reg add "$HIVE\\SOFTWARE\\Microsoft\\EdgeUpdate\\Clients\\$GUID" /v name /t REG_SZ /d "Microsoft Edge WebView2 Runtime" /f /reg:$VIEW >/dev/null 2>&1 || true
     "$WINE" reg add "$HIVE\\SOFTWARE\\Microsoft\\EdgeUpdate\\Clients\\$GUID" /v location /t REG_SZ /d "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application" /f /reg:$VIEW >/dev/null 2>&1 || true
   done
