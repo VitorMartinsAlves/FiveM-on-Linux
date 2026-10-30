@@ -20,6 +20,7 @@ jobs:
       - name: Validate Python syntax
         run: |
           python -m py_compile app.py
+          python -m py_compile third_party/akacross/bin/write-config.py
           python -m py_compile third_party/akacross/bin/cdp.py
           python -m py_compile third_party/akacross/bin/kick-updater.py
       - name: Validate all shell scripts
@@ -28,6 +29,7 @@ jobs:
           bash -n uninstall.sh
           bash -n tests/test-uninstall.sh
           bash -n tests/test-env.sh
+          bash -n tests/test-config.sh
           find third_party/akacross -type f -name '*.sh' -print0 | while IFS= read -r -d '' script; do
             bash -n "$script"
           done
@@ -62,6 +64,8 @@ jobs:
         run: bash tests/test-uninstall.sh
       - name: Test environment setup without WebView2
         run: bash tests/test-env.sh
+      - name: Test FiveM Enhanced TOML configuration
+        run: bash tests/test-config.sh
       - name: Validate required Lutris integration files
         run: |
           test -x /usr/bin/bash
