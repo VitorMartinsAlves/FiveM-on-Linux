@@ -647,16 +647,17 @@ class FiveMLutrisApp:
             self.status_cards["Prefixo Lutris"].configure(text=str(prefix), fg=GREEN)
         else:
             self.status_cards["Prefixo Lutris"].configure(text="Selecione o prefixo com system.reg", fg=ACCENT)
-        if wine and wine.is_file() and os.access(wine, os.X_OK):
-            self.status_cards["Runner Wine"].configure(text=str(wine), fg=GREEN)
+        wine_ok = bool(wine and wine.is_file() and os.access(wine, os.X_OK) and wineserver_for(wine))
+        if wine_ok:
+            self.status_cards["Runner Wine"].configure(text="Wine + wineserver encontrados", fg=GREEN)
         else:
-            self.status_cards["Runner Wine"].configure(text="Selecione o Wine runner do Lutris", fg=ACCENT)
+            self.status_cards["Runner Wine"].configure(text="Wine ou wineserver correspondente ausente", fg=ACCENT)
         if prefix and is_prefix(prefix) and (prefix / FIVEM_EXE_REL).is_file():
             self.status_cards["FiveM Enhanced"].configure(text="Arquivos instalados", fg=GREEN)
         else:
             self.status_cards["FiveM Enhanced"].configure(text="Ainda não preparado", fg=MUTED)
 
-        if prefix and is_prefix(prefix) and game and has_game(game) and wine and wine.is_file():
+        if prefix and is_prefix(prefix) and game and has_game(game) and wine_ok:
             self.status_var.set("Configuração encontrada")
             self.detail_var.set(f"Prefixo: {prefix}  •  Jogo: {game}")
         else:
