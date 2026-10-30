@@ -12,7 +12,7 @@ MAN="$FIVEM_ROOT/dl/manifest-$PROD.json"
 mkdir -p "$FIVEM_ROOT/dl"
 manifest_tmp="$(mktemp "$FIVEM_ROOT/dl/.manifest-$PROD.XXXXXX")"
 trap 'rm -f "$manifest_tmp"' EXIT
-curl -sfL --retry 2 --max-time 90 -A "$UA" -o "$manifest_tmp" \
+curl --proto '=https' --proto-redir '=https' -sfL --retry 2 --max-time 90 -A "$UA" -o "$manifest_tmp" \
   "https://depot.cfx.re/public/p/$PROD/u/$BRANCH"
 python3 - "$manifest_tmp" <<'PY'
 import json, sys
@@ -61,7 +61,7 @@ PY
     continue
   fi
   tmpout="$(mktemp "$out_dir/.fivem-download.XXXXXX")"
-  if ! curl -sfL --retry 2 --max-time 1800 -A "$UA" -o "$tmpout" "$url"; then
+  if ! curl --proto '=https' --proto-redir '=https' -sfL --retry 2 --max-time 1800 -A "$UA" -o "$tmpout" "$url"; then
     rm -f "$tmpout"
     echo "Download failed: $rel" >&2
     exit 1
