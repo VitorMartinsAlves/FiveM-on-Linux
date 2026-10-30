@@ -24,6 +24,7 @@ jobs:
           python -m py_compile third_party/akacross/bin/cdp.py
           python -m py_compile third_party/akacross/bin/kick-updater.py
           python -m py_compile tests/test-runner-policy.py
+          python -m py_compile tests/test-install-state.py
       - name: Test runner selection policy
         run: python tests/test-runner-policy.py
       - name: Validate all shell scripts
