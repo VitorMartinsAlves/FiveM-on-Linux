@@ -639,13 +639,6 @@ class FiveMLutrisApp:
         else:
             self.status_var.set("Selecione ou confirme os três caminhos")
             self.detail_var.set("O jogo e o prefixo podem estar em discos diferentes. Use ESCOLHER em cada campo.")
-        try:
-            if prefix and is_prefix(prefix):
-                settings = (prefix, game, wine, wineserver_for(wine) if wine and wine.is_file() else None)
-                if game and has_game(game) and wine and wine.is_file() and settings[3]:
-                    self.save_settings(settings)
-        except Exception as exc:
-            self.log(f"Aviso ao atualizar configurações: {exc}")
 
 def main():
     try:
