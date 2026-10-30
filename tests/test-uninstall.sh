@@ -75,9 +75,23 @@ echo "test menu" > "$APP_DIR/fivem-linux.desktop"
 echo "test cfx" > "$APP_DIR/fivem-enhanced-lutris-cfx.desktop"
 echo "test cli" > "$BIN_DIR/fivem-linux"
 echo "test uninstall cli" > "$BIN_DIR/fivem-linux-uninstall"
-printf '__NONE__\n' > "$CONFIG_DIR/cfx-handler.previous"
-mkdir -p "$HOME/.config"
+printf 'org.kde.dolphin.desktop\n' > "$CONFIG_DIR/cfx-handler.previous"
+mkdir -p "$HOME/.config" "$TMP/bin"
 printf '[Default Applications]\nx-scheme-handler/cfx=fivem-enhanced-lutris-cfx.desktop;org.kde.dolphin.desktop;\n' > "$HOME/.config/mimeapps.list"
+cat > "$TMP/bin/xdg-mime" <<'SH'
+#!/usr/bin/env bash
+if [[ "$1" == "query" ]]; then
+  # Simulate the user choosing a different handler after installing FiveM.
+  echo "org.mozilla.firefox.desktop"
+  exit 0
+fi
+if [[ "$1" == "default" ]]; then
+  printf '%s\n' "$2" >> "$TMP/xdg-mime-default-calls.log"
+  exit 0
+fi
+exit 1
+SH
+chmod +x "$TMP/bin/xdg-mime"
 
 python3 - "$CONFIG_DIR/lutris-settings.json" "$PREFIX" <<'PY'
 import json
@@ -86,7 +100,7 @@ with open(sys.argv[1], "w", encoding="utf-8") as f:
     json.dump({"prefix": sys.argv[2]}, f)
 PY
 
-printf '\ns\n' | HOME="$HOME" bash "$ROOT/uninstall.sh" --rollback > "$TMP/uninstall.log" 2>&1 || {
+printf '\ns\n' | HOME="$HOME" PATH="$TMP/bin:$PATH" TMP="$TMP" bash "$ROOT/uninstall.sh" --rollback > "$TMP/uninstall.log" 2>&1 || {
   cat "$TMP/uninstall.log" >&2
   exit 1
 }
@@ -106,6 +120,7 @@ grep -q "original old file" "$PRODUCT_ROOT/fivem_gen9/200/existing.dat"
 [[ ! -e "$INSTALL_DIR/app.py" ]]
 [[ ! -e "$APP_DIR/fivem-linux.desktop" ]]
 grep -q "org.kde.dolphin.desktop" "$HOME/.config/mimeapps.list"
+[[ ! -f "$TMP/xdg-mime-default-calls.log" ]]
 grep -q -- "-k" "$TMP/wineserver.log"
 grep -q -- "-w" "$TMP/wineserver.log"
 
