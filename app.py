@@ -189,6 +189,35 @@ def profile_for_prefix(prefix: Path) -> str:
     return os.environ.get("USER", "user")
 
 
+def is_fivem_prepared(prefix: Path) -> bool:
+    """Check the complete staged client, not just the presence of FiveM.exe."""
+    launcher = prefix / "drive_c" / "FiveM Enhanced"
+    user = profile_for_prefix(prefix)
+    local = prefix / "drive_c" / "users" / user / "AppData" / "Local" / "FiveM for GTAV Enhanced"
+    roaming = prefix / "drive_c" / "users" / user / "AppData" / "Roaming" / "FiveM for GTAV Enhanced"
+
+    required_files = (
+        launcher / "FiveM.exe",
+        launcher / "modify.exe",
+        launcher / "depot-manifest.json",
+        launcher / ".depot-build",
+        roaming / "config.toml",
+    )
+    if not all(path.is_file() and path.stat().st_size > 0 for path in required_files):
+        return False
+
+    products = local / "products"
+    for product in ("cfxui_gen9", "fivem_gen9"):
+        product_root = products / product
+        try:
+            builds = [entry for entry in product_root.iterdir() if entry.is_dir()]
+        except OSError:
+            return False
+        if not any((product_root / f"manifest-{build.name}.json").is_file() for build in builds):
+            return False
+    return True
+
+
 def runner_root(wine: Path) -> Path:
     return wine.parent.parent if wine.parent.name == "bin" else wine.parent
 
@@ -691,9 +720,13 @@ class FiveMLutrisApp:
             messagebox.showerror("Configuração incompleta", str(exc), parent=self.root)
             return
         prefix, game, wine, server = paths
-        exe = prefix / FIVEM_EXE_REL
-        if not exe.is_file():
-            messagebox.showinfo("FiveM ainda não preparado", "Clique primeiro em PREPARAR NESTE PREFIXO.", parent=self.root)
+        if not is_fivem_prepared(prefix):
+            messagebox.showinfo(
+                "Preparação incompleta",
+                "Não encontrei todos os arquivos essenciais do FiveM, os manifestos dos produtos e o config.toml. "
+                "Execute PREPARAR NESTE PREFIXO novamente para concluir a instalação.",
+                parent=self.root,
+            )
             return
         env = self.env_for(paths)
         self.save_settings(paths)
@@ -735,10 +768,10 @@ class FiveMLutrisApp:
             self.status_cards["Runner Wine"].configure(text="Proton selecionado sem integração UMU", fg=ACCENT)
         else:
             self.status_cards["Runner Wine"].configure(text="Wine ou wineserver correspondente ausente", fg=ACCENT)
-        if prefix and is_prefix(prefix) and (prefix / FIVEM_EXE_REL).is_file():
-            self.status_cards["FiveM Enhanced"].configure(text="Arquivos instalados", fg=GREEN)
+        if prefix and is_prefix(prefix) and is_fivem_prepared(prefix):
+            self.status_cards["FiveM Enhanced"].configure(text="Arquivos essenciais verificados", fg=GREEN)
         else:
-            self.status_cards["FiveM Enhanced"].configure(text="Ainda não preparado", fg=MUTED)
+            self.status_cards["FiveM Enhanced"].configure(text="Instalação ausente ou incompleta", fg=ACCENT)
 
         if prefix and is_prefix(prefix) and game and has_game(game) and wine_ok:
             self.status_var.set("Configuração encontrada")
