@@ -44,7 +44,11 @@ Não execute a preparação enquanto GTA, Rockstar Launcher ou outro programa es
 - **Não detecta o jogo:** selecione manualmente a pasta que contém `GTA5_Enhanced.exe`, não a pasta anterior.
 - **Não detecta o prefixo:** selecione a pasta raiz do prefixo Lutris; não selecione `drive_c`.
 - **Janela preta:** o runner pode não expor os DLLs DXVK que o script procura. Ative DXVK na configuração do runner Lutris e confira a área Atividade.
-- **Launcher abre, mas não conecta:** é uma limitação conhecida do FiveM Enhanced no Wine/Linux e pode não ser corrigível por caminhos ou configurações locais. O projeto não tenta ignorar o anti-cheat.
+- **O botão Connect não faz nada:** limitação confirmada no cliente FiveM Enhanced sob Wine. A execução falha dentro de `resolveServer()`, na consulta de resolução do servidor, antes de chamar o método nativo `connectTo`. Portanto, não é um problema de DNS, porta, caminho do jogo, registro ou configuração do prefixo. Alterar essas opções não corrige essa etapa.
+- **Autenticação e links `cfx://`:** o redirecionamento do navegador não é encaminhado corretamente a uma instância FiveM já aberta. O Wine não consegue enumerar `\\.\\pipe\\` (erro 50), mecanismo usado pelo cliente para localizar a instância existente. Inicializar outra instância com a URL também não conclui o callback. O handler deste projeto agora registra o recebimento e mostra um aviso, sem iniciar uma segunda instância que não processaria o link.
+- **Erro 401 em `/api/identities`:** esse endpoint é usado para associação opcional de contas (por exemplo, Discord/Steam); esse 401, isoladamente, não explica a falha de conexão nem significa que o ticket de entrada foi recusado.
+- **Anti-cheat:** mesmo depois de resolver o problema de `resolveServer()`, servidores que exigem os componentes de anti-cheat não são suportados pelo Wine. Este projeto não tenta contornar essa verificação.
+- **Servidor local:** testar um servidor FXServer local em `127.0.0.1:30120` pode ajudar a separar a falha de resolução pública, mas esse caminho ainda não foi validado neste projeto.
 - **Runner Wine:** selecione o executável `bin/wine` e o `wineserver` correspondente do mesmo runner. O aplicativo não mistura um wineserver do sistema com um runner Lutris.
 
 ## Créditos
