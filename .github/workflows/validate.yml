@@ -70,6 +70,8 @@ jobs:
         run: bash tests/test-env.sh
       - name: Test FiveM Enhanced TOML configuration
         run: bash tests/test-config.sh
+      - name: Test cfx URL handler safely rejects unsupported forwarding
+        run: bash tests/test-cfx-handler.sh
       - name: Validate required Lutris integration files
         run: |
           test -x /usr/bin/bash
