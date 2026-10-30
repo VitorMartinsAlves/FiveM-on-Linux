@@ -18,6 +18,21 @@ jobs:
         with:
           python-version: "3.12"
       - name: Validate Python syntax
-        run: python -m py_compile app.py
-      - name: Validate installer shell syntax
-        run: bash -n install.sh
+        run: |
+          python -m py_compile app.py
+          python -m py_compile third_party/akacross/bin/cdp.py
+          python -m py_compile third_party/akacross/bin/kick-updater.py
+      - name: Validate all shell scripts
+        run: |
+          bash -n install.sh
+          find third_party/akacross -type f -name '*.sh' -print0 | while IFS= read -r -d '' script; do
+            bash -n "$script"
+          done
+      - name: Validate required Lutris integration files
+        run: |
+          test -x /usr/bin/bash
+          test -f app.py
+          test -f third_party/akacross/install-lutris.sh
+          test -f third_party/akacross/bin/fetch-launcher.sh
+          test -f third_party/akacross/bin/fetch-product.sh
+          test -f third_party/akacross/bin/register.sh
