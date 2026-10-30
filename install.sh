@@ -42,6 +42,10 @@ mkdir -p "$INSTALL_DIR" "$BIN_DIR" "$APP_DIR"
 install -m 0644 "$SOURCE_DIR/app.py" "$INSTALL_DIR/app.py"
 [[ ! -f "$SOURCE_DIR/README.md" ]] || install -m 0644 "$SOURCE_DIR/README.md" "$INSTALL_DIR/README.md"
 [[ ! -f "$SOURCE_DIR/LICENSE" ]] || install -m 0644 "$SOURCE_DIR/LICENSE" "$INSTALL_DIR/LICENSE"
+if [[ -d "$SOURCE_DIR/third_party/akacross" ]]; then
+  mkdir -p "$INSTALL_DIR/third_party/akacross"
+  cp -a "$SOURCE_DIR/third_party/akacross/." "$INSTALL_DIR/third_party/akacross/"
+fi
 
 cat > "$BIN_DIR/fivem-linux" <<EOF
 #!/usr/bin/env bash
@@ -53,7 +57,7 @@ cat > "$APP_DIR/fivem-linux.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=FiveM on Linux
-Comment=Preparar FiveM para GTA V Enhanced via Steam e Proton
+Comment=Preparar FiveM Enhanced usando Lutris e Rockstar Games Launcher
 Exec=$BIN_DIR/fivem-linux
 Icon=applications-games
 Terminal=false
