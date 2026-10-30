@@ -33,6 +33,7 @@ jobs:
           bash -n tests/test-uninstall.sh
           bash -n tests/test-env.sh
           bash -n tests/test-config.sh
+          bash -n tests/test-cfx-handler.sh
           find third_party/akacross -type f -name '*.sh' -print0 | while IFS= read -r -d '' script; do
             bash -n "$script"
           done
