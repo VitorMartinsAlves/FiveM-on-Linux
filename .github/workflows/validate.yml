@@ -37,6 +37,7 @@ jobs:
           bash -n tests/test-env.sh
           bash -n tests/test-config.sh
           bash -n tests/test-cfx-handler.sh
+          bash -n tests/test-devtools-opt-in.sh
           find third_party/akacross -type f -name '*.sh' -print0 | while IFS= read -r -d '' script; do
             bash -n "$script"
           done
@@ -75,6 +76,8 @@ jobs:
         run: bash tests/test-config.sh
       - name: Test cfx URL handler safely rejects unsupported forwarding
         run: bash tests/test-cfx-handler.sh
+      - name: Ensure WebView2 DevTools stay opt-in
+        run: bash tests/test-devtools-opt-in.sh
       - name: Validate required Lutris integration files
         run: |
           test -x /usr/bin/bash

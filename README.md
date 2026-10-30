@@ -44,13 +44,33 @@ Não execute a preparação enquanto GTA, Rockstar Launcher ou outro programa es
 - **Não detecta o jogo:** selecione manualmente a pasta que contém `GTA5_Enhanced.exe`, não a pasta anterior.
 - **Não detecta o prefixo:** selecione a pasta raiz do prefixo Lutris; não selecione `drive_c`.
 - **Janela preta:** o runner pode não expor os DLLs DXVK que o script procura. Ative DXVK na configuração do runner Lutris e confira a área Atividade.
-- **O botão Connect não faz nada:** limitação confirmada no cliente FiveM Enhanced sob Wine. A execução falha dentro de `resolveServer()`, na consulta de resolução do servidor, antes de chamar o método nativo `connectTo`. Portanto, não é um problema de DNS, porta, caminho do jogo, registro ou configuração do prefixo. Alterar essas opções não corrige essa etapa.
+- **Conexão a servidores públicos (Connect):** há uma limitação reproduzida no cliente FiveM Enhanced sob Wine: o fluxo público falha dentro de `resolveServer()`, antes de chamar o método nativo `connectTo`. O repositório de origem também relata que chamadas diretas a `connectTo` e `executeCommand('connect ...')` são silenciosamente descartadas nesse ambiente. Os scripts deste projeto preparam o launcher e o prefixo; não controlam esse código fechado do cliente. Até existir uma correção upstream comprovada, esta versão **não oferece conexão pública funcional garantida**. Isso não é corrigido mudando DNS, portas, registro, caminho do jogo ou reinstalando os mesmos componentes.
+- **“Failed to connect to authentication services in a reasonable timespan”:** esse texto pertence ao fluxo HTTP do cliente, não ao erro opcional de associação de contas. O `401` em `/api/identities` não comprova falha no serviço de autenticação do servidor. Para afirmar que houve timeout de autenticação, é necessário um log `fivem-for-gtav-enhanced-*.log` da execução do cliente; logs `fivem-launcher-*.log` e avisos do WebView2 não substituem esse arquivo.
+- **Servidor FXServer local:** a origem sugere testar `127.0.0.1:30120` porque isso pode evitar a consulta pública feita por `resolveServer()`. Esse teste ainda não foi validado, e não é uma solução confirmada: a chamada nativa de conexão também apresentou falhas sob Wine. Um FXServer local exige uma chave de licença Cfx.re válida; `sv_lan 1` não dispensa a chave.
 - **Autenticação e links `cfx://`:** o redirecionamento do navegador não é encaminhado corretamente a uma instância FiveM já aberta. O Wine não consegue enumerar `\\.\\pipe\\` (erro 50), mecanismo usado pelo cliente para localizar a instância existente. Inicializar outra instância com a URL também não conclui o callback. O handler deste projeto agora registra o recebimento e mostra um aviso, sem iniciar uma segunda instância que não processaria o link.
 - **Erro 401 em `/api/identities`:** esse endpoint é usado para associação opcional de contas (por exemplo, Discord/Steam); esse 401, isoladamente, não explica a falha de conexão nem significa que o ticket de entrada foi recusado.
 - **Anti-cheat:** é uma limitação independente. Em Wine, o FiveM pode entrar em modo inseguro e perder recursos exigidos por servidores protegidos. Porém, a falha de conexão observada neste projeto acontece antes, em `resolveServer()`; ainda não há evidência de que o anti-cheat seja a causa desse primeiro erro. Este projeto não tenta contornar essa verificação.
 - **Servidor local:** testar um servidor FXServer local em `127.0.0.1:30120` pode ajudar a separar a falha de resolução pública, mas esse caminho ainda não foi validado neste projeto.
 - **Runner Wine:** selecione o executável `bin/wine` e o `wineserver` correspondente do mesmo runner. O aplicativo não mistura um wineserver do sistema com um runner Lutris.
 - **Proton/GE-Proton:** esta versão do aplicativo ainda não integra o UMU. Ela chama `wine reg`, `wineserver` e o executável diretamente; por isso, não selecione `files/bin/wine` de Proton/GE-Proton. O GE-Proton fora da Steam deve ser iniciado pelo UMU, conforme a documentação do [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom). O projeto de origem para FiveM Enhanced também já relata teste com GE-Proton 11-3 sem resolver a falha de conexão pública.
+
+### DevTools do WebView2 (somente diagnóstico)
+
+A depuração remota fica **desativada por padrão**. Quando ativada, o WebView2 expõe a interface de DevTools em `127.0.0.1:9222`; mantenha-a ligada apenas durante uma sessão de diagnóstico e desative-a ao terminar. Isso não altera o DNS nem a conectividade do sistema.
+
+Para habilitar, com o FiveM fechado:
+
+```bash
+source "$HOME/.config/fivem-linux/lutris.env"
+bash "$HOME/.local/share/fivem-linux/third_party/akacross/bin/enable-devtools.sh" 1
+```
+
+Para desabilitar:
+
+```bash
+source "$HOME/.config/fivem-linux/lutris.env"
+bash "$HOME/.local/share/fivem-linux/third_party/akacross/bin/enable-devtools.sh" 0
+```
 
 ## Créditos
 
