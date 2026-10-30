@@ -29,7 +29,7 @@ HOME = Path.home()
 CACHE_DIR = HOME / ".cache" / "fivem-linux"
 INSTALL_DIR = HOME / ".local" / "share" / "fivem-linux"
 LOG_DIR = HOME / ".local" / "state" / "fivem-linux"
-GAME_LAUNCH_OPTIONS = """PROTON_USE_XALIA=0 bash -c 'exec "\${@//waitforexitandrun/run}" -- %command%'"""
+GAME_LAUNCH_OPTIONS = "PROTON_USE_XALIA=0 bash -c 'exec \\"" + chr(36) + "{@//waitforexitandrun/run}\\\" -- %command%'"
 
 BG = "#0b0e14"
 PANEL = "#141a24"
@@ -63,8 +63,10 @@ def steam_roots() -> list[Path]:
 
 def steam_libraries(root: Path) -> list[Path]:
     result = [root]
-    vdf = root / "steamapps" / "libraryfolders.vdf"
-    if vdf.exists():
+    vdf_candidates = [root / "steamapps" / "libraryfolders.vdf", root / "config" / "libraryfolders.vdf"]
+    for vdf in vdf_candidates:
+        if not vdf.exists():
+            continue
         try:
             data = vdf.read_text(encoding="utf-8", errors="replace")
             for value in re.findall(r'"path"\s*"([^"]+)"', data):
@@ -446,6 +448,12 @@ class FiveMLinuxApp:
                     messagebox.showerror("FiveM on Linux", payload, parent=self.root)
                 elif kind == "info":
                     messagebox.showinfo("FiveM on Linux", payload, parent=self.root)
+                elif kind == "confirm":
+                    title, message, finished, result = payload
+                    try:
+                        result["value"] = messagebox.askyesno(title, message, parent=self.root)
+                    finally:
+                        finished.set()
                 elif kind == "done":
                     self.busy = False
                     self.progress.stop()
@@ -457,6 +465,13 @@ class FiveMLinuxApp:
         except queue.Empty:
             pass
         self.root.after(150, self.poll_events)
+
+    def ask_yes_no(self, title: str, message: str) -> bool:
+        finished = threading.Event()
+        result: dict = {}
+        self.events.put(("confirm", (title, message, finished, result)))
+        finished.wait()
+        return bool(result.get("value", False))
 
     def run_worker(self, action):
         if self.busy:
@@ -511,6 +526,7 @@ class FiveMLinuxApp:
         else:
             self.card_labels["Prefixo Proton"].configure(text="Precisa iniciar o jogo")
             self.card_labels["Prefixo Proton"].configure(fg=ACCENT)
+        self.shortcut_appid = self.find_existing_shortcut_appid()
         if self.fivem_exe and self.fivem_exe.is_file():
             self.card_labels["FiveM"].configure(text="Instalado")
             self.card_labels["FiveM"].configure(fg=GREEN)
@@ -698,7 +714,7 @@ class FiveMLinuxApp:
         if not asset:
             raise RuntimeError("Não encontrei o arquivo .tar.gz da release mais recente do GE-Proton.")
         size_gb = asset.get("size", 0) / (1024 ** 3)
-        if not messagebox.askyesno("Instalar GE-Proton", f"Será baixada a versão {asset['name']} ({size_gb:.1f} GB, aproximadamente) do GitHub oficial.\n\nDeseja continuar?", parent=self.root):
+        if not self.ask_yes_no("Instalar GE-Proton", f"Será baixada a versão {asset['name']} ({size_gb:.1f} GB, aproximadamente) do GitHub oficial.\n\nDeseja continuar?"):
             self.log("Download do GE-Proton cancelado.")
             return
         archive = CACHE_DIR / asset["name"]
@@ -720,6 +736,32 @@ class FiveMLinuxApp:
             raise RuntimeError("O arquivo foi extraído, mas o executável proton não foi encontrado.")
         self.log(f"GE-Proton instalado: {installed.parent.name}. Reinicie a Steam para ele aparecer nas opções.")
         self.events.put(("info", f"{installed.parent.name} foi instalado em {target}.\n\nFeche e reabra a Steam; em Propriedades → Compatibilidade, selecione a mesma versão no GTA V Enhanced e no atalho FiveM."))
+
+    def find_existing_shortcut_appid(self) -> int | None:
+        if not self.fivem_exe:
+            return None
+        target = str(self.fivem_exe)
+        for root in steam_roots():
+            userdata = root / "userdata"
+            if not userdata.is_dir():
+                continue
+            for config in userdata.glob("*/config"):
+                shortcuts_file = config / "shortcuts.vdf"
+                if not shortcuts_file.is_file():
+                    continue
+                try:
+                    data = parse_binary_vdf(shortcuts_file.read_bytes())
+                    for entry in data.get("shortcuts", {}).values():
+                        if not isinstance(entry, dict):
+                            continue
+                        exe = str(get_key(entry, "Exe", "")).strip('"')
+                        name = str(get_key(entry, "AppName", ""))
+                        if exe == target and name == APP_NAME:
+                            value = int(get_key(entry, "appid", 0))
+                            return value & 0xFFFFFFFF
+                except Exception:
+                    continue
+        return None
 
     def find_userdata_config(self) -> Path | None:
         roots = steam_roots()
