@@ -54,6 +54,19 @@ class ProtonRunnerPolicyTests(unittest.TestCase):
             "/home/proton/.local/share/lutris/runners/wine/lutris-GE-8-26-x86_64/bin/wine"
         )))
 
+    def test_symlink_to_ge_proton_is_rejected(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            real_wine = root / "runners" / "wine" / "GE-Proton11-7" / "files" / "bin" / "wine"
+            real_wine.parent.mkdir(parents=True)
+            real_wine.touch()
+            alias = root / "runners" / "wine" / "default" / "bin" / "wine"
+            alias.parent.mkdir(parents=True)
+            alias.symlink_to(real_wine)
+            self.assertTrue(self.detect(alias))
+
 
 if __name__ == "__main__":
     unittest.main()
