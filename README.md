@@ -1,67 +1,54 @@
-# FiveM on Linux — CachyOS / KDE
+# FiveM on Linux — CachyOS + Lutris + Rockstar Games Launcher
 
-Assistente visual para preparar **FiveM para GTA V Enhanced** no CachyOS com Steam nativa e Proton. Detecta bibliotecas Steam, inclusive em outros discos, verifica o prefixo correto, instala o WebView2, abre o instalador oficial do FiveM Enhanced e registra um atalho não-Steam.
+Aplicativo visual para preparar o **FiveM for GTA V Enhanced** usando a instalação existente do GTA V Enhanced e o prefixo Wine do Lutris onde você já usa o Rockstar Games Launcher. O jogo pode estar em outro HD: basta selecionar a pasta que contém `GTA5_Enhanced.exe`.
 
-> **Estado experimental.** Cfx.re não oferece suporte oficial a Linux. O launcher já foi aberto por outros usuários, mas há relatos recentes de falha ao conectar a servidores no Enhanced. Este projeto não contorna anti-cheat e não promete que o multiplayer funcionará.
+> **Experimental e sem suporte oficial a Linux.** O projeto não contorna anti-cheat. A preparação pode fazer o launcher abrir e carregar a lista de servidores, mas isso não garante que seja possível conectar a servidores públicos. O método Enhanced usado aqui foi demonstrado em uma instalação Steam; a combinação Rockstar Launcher + Lutris ainda pode exigir ajustes específicos do runner. Faça backup e use por sua conta e risco.
 
-## Instalar com um comando
+## Instalar com um comando no CachyOS
 
-Abra o terminal e execute:
+Abra o Konsole e execute:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/VitorMartinsAlves/FiveM-on-Linux/main/install.sh | bash
 ```
 
-O instalador pode pedir sua senha para instalar o pacote `tk` pelo pacman, caso o Python do sistema não tenha Tkinter. Depois abre o aplicativo visual.
+Isso instala a interface em `~/.local/share/fivem-linux`, cria o comando `~/.local/bin/fivem-linux` e adiciona um atalho ao menu de aplicativos. Se `tkinter` não estiver instalado, o instalador oferece instalá-lo com `pacman`.
 
-## O que o aplicativo faz
-
-- Procura o GTA V Enhanced (Steam App ID `3240220`) nas bibliotecas Steam registradas, inclusive bibliotecas em outro HD.
-- Permite escolher manualmente a pasta do jogo.
-- Verifica se o prefixo Proton foi criado; se ainda não foi, abre o jogo pela Steam para você iniciar uma vez.
-- Instala o WebView2 no prefixo correto e abre o instalador oficial do FiveM Enhanced.
-- Detecta Proton/GE-Proton e oferece instalar a versão GE mais recente do projeto oficial.
-- Pode registrar o FiveM como jogo não-Steam, preservando os atalhos existentes. A Steam precisa estar totalmente fechada para editar esse arquivo.
-- Gera as opções necessárias e deixa copiá-las para as propriedades do GTA V.
-
-## Fluxo recomendado
-
-1. Instale o GTA V Enhanced normalmente pela Steam, mesmo que esteja no HD secundário.
-2. Na Steam, force a mesma versão de Proton/GE-Proton para o GTA V Enhanced e para o atalho FiveM.
-3. Inicie o GTA V Enhanced pela Steam uma vez, entre no modo história e feche o jogo. Isso cria o prefixo e os dados de primeiro início.
-4. Abra o aplicativo e clique em **Preparar FiveM**. Complete a instalação que aparecer na tela.
-5. Feche a Steam por completo, use **Registrar atalho no Steam**, reabra a Steam e ative a mesma versão de Proton nas propriedades do atalho.
-6. Para o primeiro início, teste o launcher antes de concluir que servidores públicos funcionam.
-
-O aplicativo não modifica os arquivos de instalação do GTA V. Instaladores e arquivos de cache ficam no prefixo Proton do jogo e em `~/.cache/fivem-linux`.
-
-## Opções do jogo
-
-O botão **Copiar opções do GTA** copia esta linha para colar em Propriedades → Geral → Opções de inicialização do GTA V Enhanced:
+Depois, abra **FiveM on Linux** no menu ou execute:
 
 ```bash
-PROTON_USE_XALIA=0 bash -c 'exec "${@//waitforexitandrun/run}" -- %command%
+~/.local/bin/fivem-linux
 ```
 
-A sintaxe é a mesma da configuração experimental de referência. O app também mostra as opções do atalho FiveM.
+## Como preparar
 
-## Segurança e limites
+1. Abra o GTA V Enhanced pelo Rockstar Games Launcher dentro do Lutris. Entre no modo história uma vez e feche o jogo e o launcher.
+2. Abra FiveM on Linux. Confirme os três caminhos: **prefixo Lutris** (pasta com `drive_c` e `system.reg`), **pasta do GTA V Enhanced** (contém `GTA5_Enhanced.exe`) e **executável Wine** do mesmo runner configurado no Lutris.
+3. Clique em **Preparar neste prefixo** e confirme. O script cria backup dos arquivos de registro antes de modificá-los, configura WebView2, prepara componentes do FiveM a partir dos manifests públicos da Cfx.re e cria um atalho no menu.
+4. Clique em **Abrir FiveM** para iniciar. Na primeira execução, o cliente pode baixar vários GB de cache. Mantenha o disco com espaço livre.
 
-- Baixa instaladores somente de endpoints oficiais do projeto Cfx.re e da Microsoft.
-- A versão GE-Proton é obtida das releases oficiais de GloriousEggroll.
-- Não pede sua senha da Rockstar nem armazena credenciais.
-- Não inclui DLL modificada nem tenta esconder Wine/Proton de sistemas anti-cheat. A correção específica de teclado descrita em alguns guias ainda não é aplicada automaticamente nesta versão.
-- Você pode cancelar a qualquer momento. Nenhum comando de instalação do jogo é executado como root.
-- FiveM Enhanced está em Early Access e o funcionamento sob Linux varia por versão do launcher, Proton e servidor.
+A interface tenta detectar configurações do Lutris automaticamente, mas permite selecionar tudo manualmente. O GTA não é reinstalado. Se o Rockstar Launcher e o GTA usarem prefixos diferentes, selecione o prefixo que efetivamente contém o Rockstar Launcher/conta licenciada e que você usa para jogar.
 
-## Solução de problemas
+## O que é alterado
 
-- **Jogo não encontrado:** use **Escolher pasta** e selecione a pasta que contém `GTA5_Enhanced.exe`.
-- **Prefixo ausente:** abra o GTA V Enhanced pela Steam, aguarde entrar no modo história e feche.
-- **Janela FiveM preta:** verifique se o WebView2 concluiu a instalação e clique em **Atualizar status**.
-- **Steam não lista o atalho:** feche Steam por completo antes de registrar; reabra depois.
-- **Launcher abre, mas não conecta:** isso pode ser a incompatibilidade do cliente Enhanced com Linux, não um caminho incorreto do jogo. Consulte os registros e as notas atuais do projeto.
+- O prefixo Wine selecionado: registro WebView2, registro de instalação do FiveM, configuração de plataforma e arquivos do cliente FiveM.
+- Um link de drive `R:` dentro do prefixo apontando para a pasta real do GTA.
+- Alguns DLLs DirectX no prefixo, se forem encontrados no runner selecionado. Os arquivos originais existentes são copiados para o backup de preparação.
+- O cache e os backups ficam em `~/.local/share/fivem-linux/runtime`.
+- Um atalho local em `~/.local/share/applications/fivem-enhanced-lutris.desktop`.
 
-## Desenvolvimento
+Não execute a preparação enquanto GTA, Rockstar Launcher ou outro programa estiver usando o prefixo. O script encerra o wineserver para que as alterações de registro sejam gravadas corretamente.
 
-Aplicação em Python/Tkinter, sem dependências Python de terceiros. Licença MIT para os arquivos deste repositório. FiveM, GTA V, Steam, Proton e WebView2 continuam sob suas respectivas licenças.
+## Problemas conhecidos
+
+- **Não detecta o jogo:** selecione manualmente a pasta que contém `GTA5_Enhanced.exe`, não a pasta anterior.
+- **Não detecta o prefixo:** selecione a pasta raiz do prefixo Lutris; não selecione `drive_c`.
+- **Janela preta:** o runner pode não expor os DLLs DXVK que o script procura. Ative DXVK na configuração do runner Lutris e confira a área Atividade.
+- **Launcher abre, mas não conecta:** é uma limitação conhecida do FiveM Enhanced no Wine/Linux e pode não ser corrigível por caminhos ou configurações locais. O projeto não tenta ignorar o anti-cheat.
+- **Problemas com login/licença:** não mude o valor de plataforma para Steam; o app configura `gamePlatform = "rockstar"` para o launcher da Rockstar.
+
+## Créditos
+
+A pasta `third_party/akacross` contém scripts adaptados do projeto [akacross/fivem-enhanced-linux](https://github.com/akacross/fivem-enhanced-linux), sob licença MIT, preservada junto aos arquivos. O runtime WebView2 é obtido da Microsoft e os componentes FiveM são baixados dos manifests públicos da Cfx.re na hora da preparação. Este repositório não redistribui esses binários.
+
+O projeto não é afiliado à Cfx.re, Rockstar Games, Valve ou Lutris.
