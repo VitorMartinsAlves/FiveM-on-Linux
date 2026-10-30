@@ -36,4 +36,4 @@ fi
 
 echo "$MESSAGE" >&2
 echo "Log: $LOG" >&2
-exit 78
+exit 0
