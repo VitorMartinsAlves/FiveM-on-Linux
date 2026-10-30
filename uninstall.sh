@@ -185,18 +185,20 @@ restore_prefix() {
   if [[ -n "$game_path" ]]; then
     expected_target="$(readlink -f "$game_path" 2>/dev/null || printf '%s' "$game_path")"
   fi
-  if [[ -L "$drive" && -n "$expected_target" && "$current_target" == "$expected_target" ]]; then
-    rm -f "$drive"
-    if [[ -L "$backup/dosdevices/r:" ]]; then
+  if [[ -L "$backup/dosdevices/r:" ]]; then
+    if [[ ! -e "$drive" && ! -L "$drive" ]]; then
       mkdir -p "$prefix/dosdevices"
       cp -a "$backup/dosdevices/r:" "$drive"
+    elif [[ -L "$drive" && -n "$expected_target" && "$current_target" == "$expected_target" ]]; then
+      rm -f "$drive"
+      cp -a "$backup/dosdevices/r:" "$drive"
+    else
+      printf '[FiveM on Linux] AVISO: R: foi alterado depois da instalação; mantive o mapeamento atual.\n' >&2
     fi
   elif [[ -f "$backup/r-drive-was-absent" ]]; then
     if [[ -L "$drive" && -n "$expected_target" && "$current_target" == "$expected_target" ]]; then
       rm -f "$drive"
     fi
-  elif [[ -L "$backup/dosdevices/r:" ]]; then
-    printf '[FiveM on Linux] AVISO: R: foi alterado depois da instalação; mantive o mapeamento atual.\n' >&2
   fi
 
   printf '[FiveM on Linux] Restaurando a pasta do launcher FiveM...\n'
