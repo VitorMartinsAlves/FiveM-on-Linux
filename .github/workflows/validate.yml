@@ -54,7 +54,7 @@ jobs:
                   i += 1
               print(f"validated embedded Python: {path}")
           PY
-      - name: Smoke test: show uninstaller usage
+      - name: "Smoke test: show uninstaller usage"
         run: |
           bash uninstall.sh --help
       - name: Test prefix rollback in an isolated fixture
