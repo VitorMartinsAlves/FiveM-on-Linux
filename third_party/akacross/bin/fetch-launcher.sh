@@ -10,6 +10,7 @@ UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 mkdir -p "$DEST"
 tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
 curl -sfL --max-time 60 -A "$UA" -o "$tmp" "$MANIFEST_URL"
+cp -f "$tmp" "$FIVEM_ROOT/dl/launcher-manifest.json"
 build="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["build"])' "$tmp")"
 echo "depot build: $build  ->  $DEST"
 
@@ -34,3 +35,9 @@ PY
   printf '  verified     %s\n' "$rel"
 done
 echo "$build" > "$DEST/.depot-build"
+
+# The updater expects modify.exe, which is the official installer copied under another name.
+INSTALLER="$FIVEM_ROOT/dl/FiveM_Installer.exe"
+if [ ! -s "$INSTALLER" ]; then
+  curl -sfL --max-time 900 -A "$UA" -o "$INSTALLER" "https://depot.cfx.re/public/p/cfxinstaller/u/main/c/FiveM_Installer.exe"
+fi
