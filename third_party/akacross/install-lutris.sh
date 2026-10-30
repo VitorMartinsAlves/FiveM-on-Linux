@@ -15,7 +15,7 @@ fail() { echo "ERROR: $*" >&2; exit 1; }
 [ -x "$WINESERVER" ] || fail "Matching wineserver is missing: $WINESERVER"
 
 mkdir -p "$FIVEM_ROOT/backups" "$FIVEM_ROOT/dl" "$FIVEM_ROOT/bin"
-BACKUP="$FIVEM_ROOT/backups/lutris-prefix-$(date +%Y%m%d-%H%M%S)-$"
+BACKUP="$FIVEM_ROOT/backups/lutris-prefix-$(date +%Y%m%d-%H%M%S)-$BASHPID"
 mkdir -p "$BACKUP"
 export FIVEM_BACKUP="$BACKUP"
 printf '%s\n' "$WINEPREFIX" > "$BACKUP/prefix.path"
@@ -114,15 +114,15 @@ if [ -n "$DXVK_DIR" ]; then
 
   # Only D3D11 and DXGI are mandatory here; other DXVK DLLs vary by runner.
   for name in d3d11 dxgi d3d10core d3d9; do
-    [ ! -f "$DXVK_DIR/$name.dll" ] || cp -f "$DXVK_DIR/$name.dll" "$SYS/$name.dll"
+    [ ! -f "$DXVK_DIR/$name.dll" ] || cp -f --remove-destination "$DXVK_DIR/$name.dll" "$SYS/$name.dll"
   done
   [ -s "$SYS/d3d11.dll" ] && [ -s "$SYS/dxgi.dll" ] || fail "DXVK D3D11/DXGI DLLs could not be copied."
   printf '%s\n' "$DXVK_DIR" > "$FIVEM_ROOT/bin/dxvk.active"
 
   VKD3D_DIR="$(dirname "$(dirname "$DXVK_DIR")")/vkd3d-proton/x86_64-windows"
   if [ -f "$VKD3D_DIR/d3d12.dll" ] && [ -f "$VKD3D_DIR/d3d12core.dll" ]; then
-    cp -f "$VKD3D_DIR/d3d12.dll" "$SYS/d3d12.dll"
-    cp -f "$VKD3D_DIR/d3d12core.dll" "$SYS/d3d12core.dll"
+    cp -f --remove-destination "$VKD3D_DIR/d3d12.dll" "$SYS/d3d12.dll"
+    cp -f --remove-destination "$VKD3D_DIR/d3d12core.dll" "$SYS/d3d12core.dll"
     printf '%s\n' "$VKD3D_DIR" > "$FIVEM_ROOT/bin/vkd3d.active"
   else
     rm -f "$FIVEM_ROOT/bin/vkd3d.active"
@@ -168,7 +168,9 @@ bash "$HERE/bin/enable-devtools.sh" 1
 
 CFG="$WINEPREFIX/drive_c/users/$WINE_USER/AppData/Roaming/FiveM for GTAV Enhanced/config.toml"
 mkdir -p "$(dirname "$CFG")"
-if [ -f "$CFG" ]; then
+if [ -L "$CFG" ]; then
+  fail "The existing FiveM config.toml is a symbolic link. It was left untouched; move it aside before retrying."
+elif [ -f "$CFG" ]; then
   cp -a "$CFG" "$BACKUP/config.toml"
 else
   : > "$BACKUP/config-was-absent"
