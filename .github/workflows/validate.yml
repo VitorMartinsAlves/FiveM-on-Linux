@@ -27,6 +27,8 @@ jobs:
           python -m py_compile tests/test-install-state.py
       - name: Test runner selection policy
         run: python tests/test-runner-policy.py
+      - name: Test FiveM staged-install detection
+        run: python tests/test-install-state.py
       - name: Validate all shell scripts
         run: |
           bash -n install.sh
