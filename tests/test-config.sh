@@ -31,7 +31,7 @@ path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 data = tomllib.loads(text)
 
-assert data["gamepath"] == "R:\\\\", repr(data["gamepath"])
+assert data["gamepath"] == "R:\\", repr(data["gamepath"])
 assert data["gamePlatform"] == "rockstar"
 assert data["ui_updateChannel"] == "production"
 assert data["customRootValue"] == 7
