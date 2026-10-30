@@ -95,7 +95,7 @@ if [ -n "$DXVK_DIR" ]; then
   mkdir -p "$BACKUP/system32"
   for name in d3d11.dll d3d10core.dll dxgi.dll d3d9.dll d3d12.dll d3d12core.dll; do
     if [ -e "$SYS/$name" ] || [ -L "$SYS/$name" ]; then
-      cp -L --preserve=mode,timestamps "$SYS/$name" "$BACKUP/system32/$name" 2>/dev/null || true
+      cp -a "$SYS/$name" "$BACKUP/system32/$name"
     fi
   done
 
@@ -122,8 +122,18 @@ else
 fi
 
 step "5/7  GTA V Enhanced mapped to R:"
-mkdir -p "$WINEPREFIX/dosdevices"
-ln -sfn "$GTA_ENHANCED_DIR" "$WINEPREFIX/dosdevices/r:"
+DOSDEVICES="$WINEPREFIX/dosdevices"
+R_DRIVE="$DOSDEVICES/r:"
+mkdir -p "$DOSDEVICES"
+if [ -e "$R_DRIVE" ] || [ -L "$R_DRIVE" ]; then
+  if [ ! -L "$R_DRIVE" ]; then
+    fail "The existing R: mapping is not a symlink. It was left untouched; move or back it up manually before continuing."
+  fi
+  mkdir -p "$BACKUP/dosdevices"
+  cp -a "$R_DRIVE" "$BACKUP/dosdevices/r:"
+  echo "   previous R: symlink backed up: $(readlink "$R_DRIVE")"
+fi
+ln -sfnT "$GTA_ENHANCED_DIR" "$R_DRIVE"
 echo "   R:\\ -> $GTA_ENHANCED_DIR"
 
 step "6/7  FiveM launcher and product files (SHA256 verified)"
