@@ -98,6 +98,6 @@ PY
 done
 
 track_product_file "$DEST/../manifest-$BUILD.json" "$PROD/manifest-$BUILD.json"
-cp -f "$MAN" "$DEST/../manifest-$BUILD.json"
+cp -f --remove-destination "$MAN" "$DEST/../manifest-$BUILD.json"
 n="$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["content_files"]))' "$MAN")"
 echo "   $n files verified into $DEST"
