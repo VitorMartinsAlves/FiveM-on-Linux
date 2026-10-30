@@ -10,7 +10,7 @@ UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 mkdir -p "$DEST" "$FIVEM_ROOT/dl"
 manifest_tmp="$(mktemp "$FIVEM_ROOT/dl/.launcher-manifest.XXXXXX")"
 trap 'rm -f "$manifest_tmp"' EXIT
-curl -sfL --retry 2 --max-time 90 -A "$UA" -o "$manifest_tmp" "$MANIFEST_URL"
+curl --proto '=https' --proto-redir '=https' -sfL --retry 2 --max-time 90 -A "$UA" -o "$manifest_tmp" "$MANIFEST_URL"
 python3 - "$manifest_tmp" <<'PY'
 import json, sys
 with open(sys.argv[1], encoding="utf-8") as f:
@@ -61,7 +61,7 @@ PY
   fi
 
   tmpout="$(mktemp "$out_dir/.fivem-download.XXXXXX")"
-  if ! curl -sfL --retry 2 --max-time 900 -A "$UA" -o "$tmpout" "$url"; then
+  if ! curl --proto '=https' --proto-redir '=https' -sfL --retry 2 --max-time 900 -A "$UA" -o "$tmpout" "$url"; then
     rm -f "$tmpout"
     echo "Download failed: $rel" >&2
     exit 1
@@ -85,7 +85,7 @@ echo "$build" > "$DEST/.depot-build"
 INSTALLER="$FIVEM_ROOT/dl/FiveM_Installer.exe"
 if [ ! -s "$INSTALLER" ] || [ "$(od -An -N2 -tx1 "$INSTALLER" | tr -d ' \n')" != "4d5a" ]; then
   installer_tmp="$(mktemp "$FIVEM_ROOT/dl/.fivem-installer.XXXXXX")"
-  if ! curl -sfL --retry 2 --max-time 900 -A "$UA" -o "$installer_tmp" \
+  if ! curl --proto '=https' --proto-redir '=https' -sfL --retry 2 --max-time 900 -A "$UA" -o "$installer_tmp" \
       "https://depot.cfx.re/public/p/cfxinstaller/u/main/c/FiveM_Installer.exe"; then
     rm -f "$installer_tmp"
     echo "Could not download the official FiveM Enhanced installer required by modify.exe." >&2
