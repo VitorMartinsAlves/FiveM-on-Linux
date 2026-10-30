@@ -10,8 +10,8 @@ WIN_DEST='C:\FiveM Enhanced'
 LOCALAPP="C:\\users\\$WINE_USER\\AppData\\Local\\FiveM for GTAV Enhanced"
 BUILD="$(cat "$DEST/.depot-build" 2>/dev/null || echo 138)"
 
-cp -f "$FIVEM_ROOT/dl/FiveM_Installer.exe" "$DEST/modify.exe"
-cp -f "$FIVEM_ROOT/dl/launcher-manifest.json" "$DEST/depot-manifest.json"
+cp -f --remove-destination "$FIVEM_ROOT/dl/FiveM_Installer.exe" "$DEST/modify.exe"
+cp -f --remove-destination "$FIVEM_ROOT/dl/launcher-manifest.json" "$DEST/depot-manifest.json"
 echo "placed modify.exe + depot-manifest.json in $DEST"
 
 # Bump #4 defence: never write the registry while a wineserver is live.
