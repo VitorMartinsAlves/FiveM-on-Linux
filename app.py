@@ -303,6 +303,8 @@ class FiveMLutrisApp:
                  "2. Inicie GTA V Enhanced e chegue ao modo história pelo menos uma vez.\n"
                  "3. Feche o jogo e o Rockstar Launcher completamente.\n"
                  "4. Selecione o prefixo e a pasta do jogo; clique em Preparar.\n\n"
+                 "Limitação confirmada: o botão Connect falha em resolveServer() antes de chamar connectTo. Não é um erro dos caminhos ou do prefixo.\n\n"
+                 "A autenticação por links cfx:// também não é concluída no Wine: o callback não chega à instância aberta (erro 50 em named pipes). O 401 em /api/identities é apenas associação opcional de contas.\n\n"
                  "O script cria backup dos arquivos de registro do prefixo antes de alterar configurações.",
             bg=PANEL, fg=MUTED, justify="left", anchor="nw", wraplength=395,
             font=("Inter", 9), pady=9
