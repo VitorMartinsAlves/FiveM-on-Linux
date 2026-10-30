@@ -31,7 +31,7 @@ A interface tenta detectar configurações do Lutris automaticamente, mas permit
 
 ## O que é alterado
 
-- O prefixo Wine selecionado: registro WebView2, registro de instalação do FiveM e arquivos do cliente FiveM. A configuração `config.toml` recebe `[gta5enhanced] gamepath = "R:/"`, preservando as demais opções e criando backup do arquivo anterior.
+- O prefixo Wine selecionado: registro WebView2, registro de instalação do FiveM e arquivos do cliente FiveM. A configuração `config.toml` recebe as chaves de raiz `gamepath`, `gamePlatform = "rockstar"` e `ui_updateChannel = "production"`, preservando as demais opções e criando backup do arquivo anterior.
 - Um link de drive `R:` dentro do prefixo apontando para a pasta real do GTA.
 - DLLs DirectX no prefixo, se estiverem disponíveis no runner selecionado. Os arquivos originais são copiados para o backup e as substituições Wine só são ativadas para os DLLs que realmente foram instalados.
 - O cache e os backups ficam em `~/.local/share/fivem-linux/runtime`.
