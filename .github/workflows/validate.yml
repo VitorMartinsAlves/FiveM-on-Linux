@@ -27,6 +27,7 @@ jobs:
           bash -n install.sh
           bash -n uninstall.sh
           bash -n tests/test-uninstall.sh
+          bash -n tests/test-env.sh
           find third_party/akacross -type f -name '*.sh' -print0 | while IFS= read -r -d '' script; do
             bash -n "$script"
           done
@@ -59,6 +60,8 @@ jobs:
           bash uninstall.sh --help
       - name: Test prefix rollback in an isolated fixture
         run: bash tests/test-uninstall.sh
+      - name: Test environment setup without WebView2
+        run: bash tests/test-env.sh
       - name: Validate required Lutris integration files
         run: |
           test -x /usr/bin/bash
