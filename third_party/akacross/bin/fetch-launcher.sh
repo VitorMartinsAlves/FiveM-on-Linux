@@ -15,8 +15,17 @@ python3 - "$manifest_tmp" <<'PY'
 import json, sys
 with open(sys.argv[1], encoding="utf-8") as f:
     data = json.load(f)
-if not isinstance(data, dict) or not isinstance(data.get("content_files"), list) or not data.get("build"):
-    raise SystemExit("Cfx launcher manifest is missing required fields")
+files = data.get("content_files") if isinstance(data, dict) else None
+build = data.get("build") if isinstance(data, dict) else None
+valid_build = (
+    isinstance(build, int) and not isinstance(build, bool) and build > 0
+) or (
+    isinstance(build, str) and build.isdigit() and int(build) > 0
+)
+if not isinstance(files, list) or not files:
+    raise SystemExit("Cfx launcher manifest has no content files")
+if not valid_build:
+    raise SystemExit("Cfx launcher manifest has an invalid build identifier")
 PY
 install -m 0644 "$manifest_tmp" "$FIVEM_ROOT/dl/launcher-manifest.json"
 build="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["build"])' "$manifest_tmp")"
