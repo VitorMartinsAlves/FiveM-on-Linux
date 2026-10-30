@@ -5,6 +5,8 @@ set -euo pipefail
 
 PROD="${1:?usage: fetch-product.sh <product> [branch]}"
 BRANCH="${2:-main}"
+[[ "$PROD" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "Invalid Cfx product name: $PROD" >&2; exit 2; }
+[[ "$BRANCH" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid Cfx branch name: $BRANCH" >&2; exit 2; }
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 LOCAL="$WINEPREFIX/drive_c/users/$WINE_USER/AppData/Local/FiveM for GTAV Enhanced"
 MAN="$FIVEM_ROOT/dl/manifest-$PROD.json"
@@ -18,8 +20,17 @@ python3 - "$manifest_tmp" <<'PY'
 import json, sys
 with open(sys.argv[1], encoding="utf-8") as f:
     data = json.load(f)
-if not isinstance(data, dict) or not isinstance(data.get("content_files"), list) or not data.get("build"):
-    raise SystemExit("Cfx product manifest is missing required fields")
+files = data.get("content_files") if isinstance(data, dict) else None
+build = data.get("build") if isinstance(data, dict) else None
+valid_build = (
+    isinstance(build, int) and not isinstance(build, bool) and build > 0
+) or (
+    isinstance(build, str) and build.isdigit() and int(build) > 0
+)
+if not isinstance(files, list) or not files:
+    raise SystemExit("Cfx product manifest has no content files")
+if not valid_build:
+    raise SystemExit("Cfx product manifest has an invalid build identifier")
 PY
 mv -f "$manifest_tmp" "$MAN"
 BUILD="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["build"])' "$MAN")"
