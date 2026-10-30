@@ -71,3 +71,9 @@ O desinstalador oferece duas opções:
 Também é possível executar diretamente `uninstall.sh --app-only` ou `uninstall.sh --rollback`. O rollback automático só está disponível para backups criados por versões que gravam metadados de prefixo; backups antigos sem essa identificação não são aplicados automaticamente, para evitar restaurar o prefixo errado.
 
 O WebView2 é mantido no prefixo porque o Rockstar Games Launcher pode compartilhar esse runtime. O jogo e o Rockstar Games Launcher não são removidos.
+
+Para usar o desinstalador sem ter o comando instalado, baixe-o para um arquivo e execute-o no terminal:
+
+```bash
+curl --proto '=https' --proto-redir '=https' -fsSL https://raw.githubusercontent.com/VitorMartinsAlves/FiveM-on-Linux/main/uninstall.sh -o /tmp/fivem-linux-uninstall.sh && bash /tmp/fivem-linux-uninstall.sh
+```
