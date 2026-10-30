@@ -439,7 +439,7 @@ class FiveMLutrisApp:
             raise ValueError("\n".join(errors))
         server = wineserver_for(wine)
         if not server:
-            raise ValueError("Não encontrei wineserver ao lado do Wine selecionado nem no PATH. Selecione o runner instalado pelo Lutris.")
+            raise ValueError("Não encontrei o wineserver correspondente ao Wine selecionado. Selecione o executável bin/wine do runner correto no Lutris; não será usado um wineserver de outra versão.")
         return prefix.resolve(), game.resolve(), wine.resolve(), server
 
     def env_for(self, paths):
