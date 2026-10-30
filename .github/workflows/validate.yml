@@ -28,6 +28,30 @@ jobs:
           find third_party/akacross -type f -name '*.sh' -print0 | while IFS= read -r -d '' script; do
             bash -n "$script"
           done
+      - name: Compile embedded Python heredocs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = [Path("install.sh"), *Path("third_party/akacross").rglob("*.sh")]
+          for path in files:
+              lines = path.read_text(encoding="utf-8").splitlines()
+              i = 0
+              while i < len(lines):
+                  if "<<'PY'" not in lines[i]:
+                      i += 1
+                      continue
+                  i += 1
+                  block = []
+                  while i < len(lines) and lines[i] != "PY":
+                      block.append(lines[i])
+                      i += 1
+                  if i == len(lines):
+                      raise SystemExit(f"{path}: unterminated Python heredoc")
+                  compile("\n".join(block), f"{path}:embedded-python", "exec")
+                  i += 1
+              print(f"validated embedded Python: {path}")
+          PY
       - name: Validate required Lutris integration files
         run: |
           test -x /usr/bin/bash
