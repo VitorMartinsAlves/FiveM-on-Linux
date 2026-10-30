@@ -42,6 +42,7 @@ mkdir -p "$INSTALL_DIR" "$BIN_DIR" "$APP_DIR"
 install -m 0644 "$SOURCE_DIR/app.py" "$INSTALL_DIR/app.py"
 [[ ! -f "$SOURCE_DIR/README.md" ]] || install -m 0644 "$SOURCE_DIR/README.md" "$INSTALL_DIR/README.md"
 [[ ! -f "$SOURCE_DIR/LICENSE" ]] || install -m 0644 "$SOURCE_DIR/LICENSE" "$INSTALL_DIR/LICENSE"
+[[ ! -f "$SOURCE_DIR/uninstall.sh" ]] || install -m 0755 "$SOURCE_DIR/uninstall.sh" "$INSTALL_DIR/uninstall.sh"
 if [[ -d "$SOURCE_DIR/third_party/akacross" ]]; then
   rm -rf "$INSTALL_DIR/third_party/akacross"
   mkdir -p "$INSTALL_DIR/third_party/akacross"
@@ -53,6 +54,12 @@ cat > "$BIN_DIR/fivem-linux" <<EOF
 exec python3 "$INSTALL_DIR/app.py" "\$@"
 EOF
 chmod 0755 "$BIN_DIR/fivem-linux"
+
+cat > "$BIN_DIR/fivem-linux-uninstall" <<EOF
+#!/usr/bin/env bash
+exec bash "$INSTALL_DIR/uninstall.sh" "\$@"
+EOF
+chmod 0755 "$BIN_DIR/fivem-linux-uninstall"
 
 cat > "$APP_DIR/fivem-linux.desktop" <<EOF
 [Desktop Entry]
@@ -66,6 +73,19 @@ Categories=Game;Utility;
 StartupNotify=true
 EOF
 chmod 0644 "$APP_DIR/fivem-linux.desktop"
+
+cat > "$APP_DIR/fivem-linux-uninstall.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Desinstalar FiveM on Linux
+Comment=Remover o aplicativo ou restaurar o prefixo Lutris
+Exec=$BIN_DIR/fivem-linux-uninstall
+Icon=application-exit
+Terminal=true
+Categories=System;Utility;
+StartupNotify=false
+EOF
+chmod 0644 "$APP_DIR/fivem-linux-uninstall.desktop"
 
 printf '\n[FiveM on Linux] Instalação concluída.\n'
 printf 'Comando para abrir depois: %s/fivem-linux\n' "$BIN_DIR"
