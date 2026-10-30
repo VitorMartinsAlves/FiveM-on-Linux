@@ -169,6 +169,7 @@ restore_prefix() {
   if [[ -d "$backup/system32" ]]; then
     mkdir -p "$sys"
     while IFS= read -r -d '' source_file; do
+      rm -f -- "$sys/$(basename "$source_file")"
       cp -a "$source_file" "$sys/$(basename "$source_file")"
     done < <(find "$backup/system32" -mindepth 1 -maxdepth 1 -print0)
   fi
