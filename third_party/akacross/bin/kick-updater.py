@@ -1,60 +1,170 @@
 #!/usr/bin/env python3
-"""Nudge the FiveM Enhanced launcher into starting its update run.
+"""Start FiveM Enhanced's updater and report the WebView2 state accurately.
 
-The launcher's page announces itself with safePost({type:'ready'}), which goes
-through window.chrome.webview.postMessage. FiveM's own document-created script
-captures that bridge into a closure and then sets chrome.webview = null, so
-safePost is a no-op and the 'ready' message never reaches native — the UI sits
-at "INITIALIZING UPDATER... 0%" forever.
-
-invokeNative() closes over the captured bridge, so it still works. Calling
-invokeNative('retryUpdates') is exactly what the UI's Retry button does and
-starts the update flow normally.
+The FiveM page's safePost({type: 'ready'}) is a no-op in this setup because
+the client clears window.chrome.webview after capturing its native bridge.
+invokeNative('retryUpdates') is the same action as the launcher's Retry button.
+This helper only operates the launcher's updater; it does not authenticate or
+connect to a game server.
 """
-import sys, time
-sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
-from cdp import targets, WS
+from __future__ import annotations
 
-DEADLINE = time.time() + 120
+import json
+import socket
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cdp import WS, targets  # noqa: E402
+
+TARGET_DEADLINE_SECONDS = 120
+EVALUATION_TIMEOUT_SECONDS = 5
+
 
 def page():
-    while time.time() < DEADLINE:
+    """Find the FiveM launcher page, not an unrelated/blank WebView2 target."""
+    deadline = time.monotonic() + TARGET_DEADLINE_SECONDS
+    last_error = None
+    while time.monotonic() < deadline:
         try:
-            p = [t for t in targets() if t.get("type") == "page"]
-            if p:
-                return p[0]
-        except Exception:
-            pass
+            pages = [
+                item for item in targets()
+                if item.get("type") == "page" and item.get("webSocketDebuggerUrl")
+            ]
+            if pages:
+                fivem_pages = [
+                    item for item in pages
+                    if "fivem" in (item.get("title", "") + " " + item.get("url", "")).lower()
+                    or "cfx" in (item.get("title", "") + " " + item.get("url", "")).lower()
+                ]
+                if len(fivem_pages) == 1:
+                    return fivem_pages[0]
+                if len(pages) == 1:
+                    return pages[0]
+                if len(fivem_pages) > 1:
+                    # Prefer a visible launcher URL over about:blank/devtools pages.
+                    fivem_pages.sort(key=lambda item: (
+                        item.get("url", "").startswith("about:"),
+                        not bool(item.get("title")),
+                    ))
+                    return fivem_pages[0]
+                last_error = "multiple WebView2 pages found, none identified as FiveM"
+            else:
+                last_error = "no WebView2 page target found"
+        except Exception as exc:  # transient while WebView2 starts
+            last_error = str(exc)
         time.sleep(2)
-    return None
+    raise RuntimeError(
+        f"FiveM WebView2 DevTools did not become available in "
+        f"{TARGET_DEADLINE_SECONDS}s ({last_error or 'unknown reason'}). "
+        "Check that WebView2 remote debugging is enabled."
+    )
 
-def ev(ws, expr):
-    i = ws.send("Runtime.evaluate", expression=expr, returnByValue=True)
-    d = time.time() + 12
-    while time.time() < d:
-        m = ws.recv()
-        if m.get("id") == i:
-            return m.get("result", {}).get("result", {}).get("value")
-    return None
 
-t = page()
-if not t:
-    sys.exit("launcher devtools never came up (is bin/enable-devtools.sh 1 set?)")
-ws = WS(t["webSocketDebuggerUrl"])
+def ev(ws: WS, expression: str, timeout: float = EVALUATION_TIMEOUT_SECONDS):
+    """Evaluate JavaScript, preserving CDP exceptions and timeouts."""
+    request_id = ws.send(
+        "Runtime.evaluate",
+        expression=expression,
+        returnByValue=True,
+        awaitPromise=True,
+    )
+    deadline = time.monotonic() + timeout
+    old_timeout = ws.s.gettimeout()
+    try:
+        ws.s.settimeout(min(1.0, timeout))
+        while time.monotonic() < deadline:
+            try:
+                message = ws.recv()
+            except socket.timeout:
+                continue
+            if not isinstance(message, dict) or message.get("id") != request_id:
+                # Ignore asynchronous CDP events and responses to other requests.
+                continue
+            result = message.get("result", {})
+            if result.get("exceptionDetails"):
+                details = result["exceptionDetails"]
+                exception = details.get("exception", {})
+                description = exception.get("description") or details.get("text")
+                raise RuntimeError(f"WebView2 JavaScript evaluation failed: {description}")
+            remote = result.get("result", {})
+            return remote.get("value")
+    finally:
+        ws.s.settimeout(old_timeout)
+    raise TimeoutError(f"Timed out evaluating WebView2 expression: {expression[:80]}")
 
-# wait for the page to finish loading its script
-for _ in range(30):
-    if ev(ws, "typeof window.invokeNative") == "function":
-        break
-    time.sleep(1)
-else:
-    sys.exit("invokeNative never appeared")
 
-body = ev(ws, "document.body.innerText") or ""
-if "INITIALIZING UPDATER" not in body.upper():
-    print(f"launcher already moving: {body.splitlines()[0] if body else '?'}")
-    sys.exit(0)
+def main() -> int:
+    ws = None
+    try:
+        target = page()
+        ws = WS(target["webSocketDebuggerUrl"])
 
-ev(ws, "window.invokeNative('retryUpdates')")
-time.sleep(3)
-print("kicked:", (ev(ws, "document.body.innerText.replace(/\\n/g,' | ')") or "?")[:100])
+        # Wait for the launcher's bridge to exist. Keep each CDP request short.
+        deadline = time.monotonic() + 45
+        while time.monotonic() < deadline:
+            try:
+                bridge_type = ev(ws, "typeof window.invokeNative", timeout=3)
+                if bridge_type == "function":
+                    break
+            except (TimeoutError, RuntimeError, ConnectionError, OSError):
+                pass
+            time.sleep(1)
+        else:
+            raise RuntimeError(
+                "The FiveM page did not expose window.invokeNative. "
+                "The updater was not triggered."
+            )
+
+        state = ev(
+            ws,
+            "({url: location.href, title: document.title, "
+            "body: (document.body?.innerText || '').trim()})",
+        )
+        body = state.get("body", "") if isinstance(state, dict) else ""
+        if "INITIALIZING UPDATER" not in body.upper():
+            summary = body.splitlines()[0][:120] if body else "(no visible page text)"
+            print(f"kick-updater: updater already moved on; {summary}")
+            return 0
+
+        ev(ws, "window.invokeNative('retryUpdates')")
+        time.sleep(3)
+        try:
+            updated = ev(
+                ws,
+                "({url: location.href, title: document.title, "
+                "body: (document.body?.innerText || '').trim()})",
+            )
+        except (TimeoutError, RuntimeError, ConnectionError, OSError) as exc:
+            print(
+                "kick-updater: retryUpdates was sent, but WebView2 status "
+                f"could not be read ({exc}). This is not a server-authentication result."
+            )
+            return 0
+
+        text = updated.get("body", "") if isinstance(updated, dict) else ""
+        if text:
+            summary = " | ".join(text.splitlines())[:180]
+            print(f"kick-updater: retryUpdates sent; updater page says: {summary}")
+        else:
+            title = updated.get("title", "") if isinstance(updated, dict) else ""
+            print(
+                "kick-updater: retryUpdates sent; WebView2 returned no visible body text"
+                + (f" (title: {title})" if title else "")
+                + ". This helper does not test Cfx authentication services."
+            )
+        return 0
+    except Exception as exc:
+        print(f"kick-updater: {exc}", file=sys.stderr)
+        return 1
+    finally:
+        if ws is not None:
+            try:
+                ws.s.close()
+            except OSError:
+                pass
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
