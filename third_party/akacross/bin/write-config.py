@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 
 ROOT_KEYS = {
-    "gamepath": r'gamepath = "R:\\\\"',
+    "gamepath": 'gamepath = "R:\\\\",
     "gamePlatform": 'gamePlatform = "rockstar"',
     "ui_updateChannel": 'ui_updateChannel = "production"',
 }
