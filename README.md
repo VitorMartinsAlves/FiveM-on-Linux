@@ -68,7 +68,7 @@ O desinstalador oferece duas opções:
 - **Remover apenas o aplicativo:** remove a interface e os atalhos, sem tocar no prefixo Wine.
 - **Rollback completo:** encerra o Wine do prefixo selecionado e restaura registros, DLLs, configuração, mapeamento `R:`, launcher e arquivos de produto que foram substituídos ou criados. O backup fica preservado em `~/.local/share/fivem-linux/runtime/backups`.
 
-Também é possível executar diretamente `uninstall.sh --app-only` ou `uninstall.sh --rollback`. O rollback automático só está disponível para backups criados por versões que gravam metadados de prefixo; backups antigos sem essa identificação não são aplicados automaticamente, para evitar restaurar o prefixo errado.
+Também é possível executar diretamente `uninstall.sh --app-only` ou `uninstall.sh --rollback`. O rollback automático só está disponível para backups criados por versões que gravam metadados de prefixo; backups antigos sem essa identificação não são aplicados automaticamente, para evitar restaurar o prefixo errado. O rollback substitui os arquivos completos de registro pelo snapshot anterior, então alterações de registro feitas no prefixo depois da preparação serão descartadas. Feche todos os programas que usam esse prefixo antes de confirmar.
 
 O WebView2 é mantido no prefixo porque o Rockstar Games Launcher pode compartilhar esse runtime. O jogo e o Rockstar Games Launcher não são removidos.
 
