@@ -27,7 +27,7 @@ mkdir -p \
   "$PREFIX/drive_c/Program Files (x86)/Microsoft/EdgeWebView/Application/123.4.5"
 mkdir -p "$(dirname "$WINE")"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$WINE"
-printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s"\n' "$TMP/wineserver.log" > "$WINESERVER"
+printf '#!/usr/bin/env bash\nprintf "%%s\n" "$*" >> "%s"\n' "$TMP/wineserver.log" > "$WINESERVER"
 chmod +x "$WINE" "$WINESERVER"
 
 echo "original registry" > "$BACKUP/system.reg"
@@ -129,18 +129,18 @@ grep -q -- "-w" "$TMP/wineserver.log"
 HOME2="$TMP/home-restore-handler"
 CONFIG2="$HOME2/.config/fivem-linux"
 mkdir -p "$HOME2/.local/share/applications" "$HOME2/.local/bin" "$HOME2/.local/share/fivem-linux" "$CONFIG2" "$TMP/bin-restore"
-printf 'org.example.previous.desktop\\n' > "$CONFIG2/cfx-handler.previous"
+printf 'org.example.previous.desktop\n' > "$CONFIG2/cfx-handler.previous"
 touch "$HOME2/.local/share/applications/fivem-enhanced-lutris-cfx.desktop"
 cat > "$TMP/bin-restore/xdg-mime" <<'SH'
 #!/usr/bin/env bash
 if [[ "$1" == "query" ]]; then
   echo "fivem-enhanced-lutris-cfx.desktop"
 elif [[ "$1" == "default" ]]; then
-  printf '%s\\n' "$2" >> "$HOME/xdg-mime-restore.log"
+  printf '%s\n' "$2" >> "$HOME/xdg-mime-restore.log"
 fi
 SH
 chmod +x "$TMP/bin-restore/xdg-mime"
 HOME="$HOME2" PATH="$TMP/bin-restore:$PATH" bash "$ROOT/uninstall.sh" --app-only >/dev/null
 grep -q "org.example.previous.desktop" "$HOME2/xdg-mime-restore.log"
 
-printf 'uninstall rollback and handler tests passed\\n'
+printf 'uninstall rollback and handler tests passed\n'
