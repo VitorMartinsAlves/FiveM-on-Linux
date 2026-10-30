@@ -29,7 +29,7 @@ HOME = Path.home()
 CACHE_DIR = HOME / ".cache" / "fivem-linux"
 INSTALL_DIR = HOME / ".local" / "share" / "fivem-linux"
 LOG_DIR = HOME / ".local" / "state" / "fivem-linux"
-GAME_LAUNCH_OPTIONS = 'PROTON_USE_XALIA=0 bash -c \'exec "
+GAME_LAUNCH_OPTIONS = 'PROTON_USE_XALIA=0 bash -c \'exec "' + chr(36) + '{@//waitforexitandrun/run}" -- %command%\''
 
 BG = "#0b0e14"
 PANEL = "#141a24"
@@ -395,6 +395,8 @@ class FiveMLinuxApp:
         self.ge_btn.pack(side="left", padx=(8, 0))
         self.shortcut_btn = self.button(actions, "REGISTRAR ATALHO STEAM", self.register_shortcut)
         self.shortcut_btn.pack(side="left", padx=(8, 0))
+        self.copy_options_btn = self.button(actions, "COPIAR OPÇÕES DO GTA", self.copy_game_options)
+        self.copy_options_btn.pack(side="left", padx=(8, 0))
         self.launch_btn = self.button(actions, "ABRIR FIVEM", self.launch_fivem)
         self.launch_btn.pack(side="right")
 
@@ -461,6 +463,7 @@ class FiveMLinuxApp:
                     self.ge_btn.configure(state="normal")
                     self.shortcut_btn.configure(state="normal")
                     self.launch_btn.configure(state="normal")
+                    self.copy_options_btn.configure(state="normal")
                     self.refresh_status()
         except queue.Empty:
             pass
@@ -481,6 +484,7 @@ class FiveMLinuxApp:
         self.ge_btn.configure(state="disabled")
         self.shortcut_btn.configure(state="disabled")
         self.launch_btn.configure(state="disabled")
+        self.copy_options_btn.configure(state="disabled")
         self.progress.start(10)
         threading.Thread(target=self._worker, args=(action,), daemon=True).start()
 
@@ -825,6 +829,7 @@ class FiveMLinuxApp:
         entry = {
             "appid": appid,
             "AppName": name,
+            "IsShortcut": 1,
             "Exe": exe_value,
             "StartDir": start_dir,
             "icon": "",
