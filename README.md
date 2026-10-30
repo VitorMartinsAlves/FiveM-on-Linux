@@ -50,6 +50,7 @@ Não execute a preparação enquanto GTA, Rockstar Launcher ou outro programa es
 - **Anti-cheat:** é uma limitação independente. Em Wine, o FiveM pode entrar em modo inseguro e perder recursos exigidos por servidores protegidos. Porém, a falha de conexão observada neste projeto acontece antes, em `resolveServer()`; ainda não há evidência de que o anti-cheat seja a causa desse primeiro erro. Este projeto não tenta contornar essa verificação.
 - **Servidor local:** testar um servidor FXServer local em `127.0.0.1:30120` pode ajudar a separar a falha de resolução pública, mas esse caminho ainda não foi validado neste projeto.
 - **Runner Wine:** selecione o executável `bin/wine` e o `wineserver` correspondente do mesmo runner. O aplicativo não mistura um wineserver do sistema com um runner Lutris.
+- **Proton/GE-Proton:** esta versão do aplicativo ainda não integra o UMU. Ela chama `wine reg`, `wineserver` e o executável diretamente; por isso, não selecione `files/bin/wine` de Proton/GE-Proton. O GE-Proton fora da Steam deve ser iniciado pelo UMU, conforme a documentação do [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom). O projeto de origem para FiveM Enhanced também já relata teste com GE-Proton 11-3 sem resolver a falha de conexão pública.
 
 ## Créditos
 
