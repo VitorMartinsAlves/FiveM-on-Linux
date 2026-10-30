@@ -145,8 +145,9 @@ restore_prefix() {
   [[ -n "$wine_user" ]] || wine_user="${USER:-user}"
 
   printf '\nBackup selecionado: %s\nPrefixo: %s\nWine: %s\n' "$backup" "$prefix" "$wine"
-  printf 'O rollback vai encerrar os processos Wine deste prefixo e restaurar os registros e arquivos salvos.\n'
-  printf 'O GTA V, Rockstar Games Launcher e os demais arquivos pessoais não serão apagados.\n'
+  printf 'O rollback encerra TODOS os processos Wine deste prefixo. Feche o GTA, o Rockstar Launcher e outros programas antes de continuar.\n'
+  printf 'Os arquivos completos system.reg/user.reg/userdef.reg serão substituídos pelo snapshot; alterações de registro feitas depois do backup serão perdidas.\n'
+  printf 'O GTA V e o Rockstar Games Launcher não serão apagados.\n'
   ask_yes_no "Confirma o rollback deste prefixo?" || { echo "Rollback cancelado."; return 1; }
 
   export WINEPREFIX="$prefix"
