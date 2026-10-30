@@ -204,14 +204,23 @@ def wineserver_for(wine: Path) -> Path | None:
 def is_proton_runner(wine: Path) -> bool:
     """Return True for Proton/GE-Proton executables that must be launched via UMU."""
     parts = [part.lower() for part in wine.parts]
-    proton_dirs = (
-        part == "proton"
-        or part.startswith((
-            "proton-", "proton_", "proton -", "ge-proton", "umu-proton"
+
+    def is_proton_dir(name: str) -> bool:
+        return name == "proton" or name.startswith((
+            "proton-", "proton_", "proton ", "ge-proton", "lutris-ge-proton", "umu-proton"
         ))
-        for part in parts
-    )
-    return "compatibilitytools.d" in parts or any(proton_dirs)
+
+    for index, part in enumerate(parts):
+        if part == "compatibilitytools.d" and index + 1 < len(parts):
+            return is_proton_dir(parts[index + 1])
+        if part == "runners" and index + 2 < len(parts):
+            # Lutris runners are stored under runners/<runner-type>/<runner-name>.
+            if is_proton_dir(parts[index + 2]):
+                return True
+        if part == "common" and "steamapps" in parts[:index] and index + 1 < len(parts):
+            if is_proton_dir(parts[index + 1]):
+                return True
+    return False
 
 
 class FiveMLutrisApp:
