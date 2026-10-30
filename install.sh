@@ -43,6 +43,7 @@ install -m 0644 "$SOURCE_DIR/app.py" "$INSTALL_DIR/app.py"
 [[ ! -f "$SOURCE_DIR/README.md" ]] || install -m 0644 "$SOURCE_DIR/README.md" "$INSTALL_DIR/README.md"
 [[ ! -f "$SOURCE_DIR/LICENSE" ]] || install -m 0644 "$SOURCE_DIR/LICENSE" "$INSTALL_DIR/LICENSE"
 if [[ -d "$SOURCE_DIR/third_party/akacross" ]]; then
+  rm -rf "$INSTALL_DIR/third_party/akacross"
   mkdir -p "$INSTALL_DIR/third_party/akacross"
   cp -a "$SOURCE_DIR/third_party/akacross/." "$INSTALL_DIR/third_party/akacross/"
 fi
